@@ -424,6 +424,8 @@ set -g @plugin 'catppuccin/tmux#v2.1.0'
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-sensible'
 set -g @plugin 'xamut/tmux-weather'
+set -g @plugin 'tmux-plugins/tmux-cpu'
+set -g @plugin 'tmux-plugins/tmux-battery'
 
 # Other examples:
 # set -g @plugin 'github_username/plugin_name'
@@ -448,7 +450,7 @@ set -g @catppuccin_window_current_color '#{E:@thm_surface_2}'
 set -g @catppuccin_status_module_text_bg '#{E:@thm_mantle}'
 set -g @catppuccin_date_time_text ' %Y-%m-%d 󰅐 %H:%M'
 
-run ~/.config/tmux/plugins/catppuccin/tmux/catppuccin.tmux
+# run ~/.config/tmux/plugins/catppuccin/tmux/catppuccin.tmux
 
 setw -g pane-border-status top
 setw -g pane-border-format ""
@@ -476,9 +478,6 @@ set -ga status-right "#[bg=#{@thm_bg},fg=#{@thm_overlay_0}, none]│"
 # weather
 set-option -g @tmux-weather-interval 15
 set-option -g @tmux-weather-location '北京'
-
-run ~/.config/tmux/plugins/tmux-cpu/cpu.tmux
-run ~/.config/tmux/plugins/tmux-battery/battery.tmux
 
 run '~/.tmux/plugins/tpm/tpm'
 
