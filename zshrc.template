@@ -75,7 +75,7 @@ ZSH_THEME="edvardm"
 plugins=(
     git
     extract
-    zsh-autosuggestions
+    # zsh-autosuggestions
     zsh-syntax-highlighting
 )
 
@@ -108,7 +108,7 @@ export LANG=en_US.UTF-8
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+# source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Go evn Settings
 export GOPATH=/Users/ouzhiwei/work/go
@@ -121,12 +121,13 @@ export CXXDEP=$HOME/work/opt
 
 # protoc
 # export PATH=$PATH:/Users/ouzhiwei/work/qtwork/opt/env_src/protobuf-v3.21.9/bin
-export PATH=$PATH:/Users/ouzhiwei/work/opt/bin
+export PATH=$PATH:$HOME/work/opt/bin
 
 # [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 alias vim='nvim'
-alias vi='vim'
+alias vi='nvim'
+alias lzd='lazydocker'
 
 # alias gf=gf
 # export TERM="xterm-256color"
