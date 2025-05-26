@@ -1,5 +1,5 @@
 # termConf
-the tmux config for terminal
+the tmux config and the zsh config for terminal
 
 # 💈 Media
 
