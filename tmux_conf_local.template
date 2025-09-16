@@ -405,6 +405,15 @@ set -g mode-keys vi
 # if you don't want Oh my tmux! to alter a binding or a setting, use #!important
 # bind c new-window -c '#{pane_current_path}' #!important
 
+
+# keep copy-mode active after copying a selection
+# Issue: https://www.reddit.com/r/tmux/comments/v73005/how_to_prevent_tmux_from_exiting_copy_mode_after/
+# refer to https://github.com/tmux/tmux/wiki/Clipboard
+bind -Tcopy-mode-vi y send-keys -X copy-selection 
+bind -Tcopy-mode-vi Enter send-keys -X copy-selection
+bind -Tcopy-mode-vi MouseDragEnd1Pane send -X copy-selection
+
+
 # move status line to top
 set -g status-position top
 
