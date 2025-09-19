@@ -13,7 +13,7 @@ source $ZSH/oh-my-zsh.sh
 # Example: en_US.UTF-8 zh_CN.UTF-8 ja_JP.UTF-8 fr_FR.UTF-8 C.UTF-8
 export LANG=en_US.UTF-8
 
-function has() {
+has() {
     command -v "$1" &> /dev/null
 }
 
@@ -28,7 +28,7 @@ function generate_alias() {
     fi
 }
 
-function os_zshrc() {
+os_zshrc() {
 
 case "$(uname)" in
 
@@ -47,13 +47,24 @@ esac
 
 }
 
-function work_rc() {
+work_rc() {
     workrc="$HOME/.workrc/rc.local"
 
     if [ -f $workrc ]; then
         source $workrc
     fi
 }
+
+# like macOS `open` command
+if [ x$WSL_DISTRO_NAME != x ]; then
+    open() {
+        if [ -z "$1"]; then
+            explorer.exe "$(wslpath -w .)"
+        else
+            explorer.exe "$(wslpath -w "$1")"
+        fi
+    }
+fi
 
 generate_alias
 os_zshrc
