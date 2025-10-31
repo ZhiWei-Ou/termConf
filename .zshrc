@@ -1,7 +1,10 @@
 export ZSH=$HOME/.oh-my-zsh
 
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="edvardm"
+# ZSH_THEME="robbyrussell"
+ZSH_THEME="catppuccin"
+CATPPUCCIN_FLAVOR="mocha" # Required! Options: mocha, flappe, macchiato, latte
+CATPPUCCIN_SHOW_TIME=true  # Optional! If set to true, this will add the current time to the prompt.
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=5'
 
@@ -10,14 +13,14 @@ plugins=( git extract zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
-# You may need to manually set your language environment
+# Example: en_US.UTF-8 zh_CN.UTF-8 ja_JP.UTF-8 fr_FR.UTF-8 C.UTF-8
 export LANG=en_US.UTF-8
 
-function has() {
+has() {
     command -v "$1" &> /dev/null
 }
 
-function generate_alias() {
+generate_alias() {
     if has nvim; then
         alias vim='nvim'
         alias vi='nvim'
@@ -28,23 +31,11 @@ function generate_alias() {
     fi
 }
 
-function os_zshrc() {
+os_zshrc() {
 
 case "$(uname)" in
 
     "Darwin")
-
-        # Go evn Settings
-        export GOPATH=$HOME/work/go
-        export GOBIN=$GOPATH/bin
-        export PATH=$PATH:$GOBIN
-        export GOPROXY=https://goproxy.cn
-
-        # custom environment variables
-        export CXXDEP=$HOME/work/opt
-
-        # protoc
-        export PATH=$PATH:$HOME/work/opt/bin
 
         alias jqclip='pbpaste | jq "."'
         ;;
@@ -59,8 +50,8 @@ esac
 
 }
 
-function work_rc() {
-    workrc="$HOME/.workrc"
+work_rc() {
+    workrc="$HOME/.workrc/rc.local"
 
     if [ -f $workrc ]; then
         source $workrc
@@ -70,3 +61,10 @@ function work_rc() {
 generate_alias
 os_zshrc
 work_rc
+
+
+export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
+
+export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+
+alias gf=gf
