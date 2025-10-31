@@ -1,16 +1,25 @@
 export ZSH=$HOME/.oh-my-zsh
 
+workrc="$HOME/.workrc/rc.local"
+themerc="$HOME/.workrc/theme.local"
+
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-# ZSH_THEME="robbyrussell"
-ZSH_THEME="catppuccin"
-CATPPUCCIN_FLAVOR="mocha" # Required! Options: mocha, flappe, macchiato, latte
-CATPPUCCIN_SHOW_TIME=true  # Optional! If set to true, this will add the current time to the prompt.
+ZSH_THEME="robbyrussell" # the default theme
+if [ -f $themerc ]; then
+    eval $(cat $themerc)
+fi
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=5'
 
 # Example format: plugins=(rails git textmate ruby lighthouse)
 plugins=( git extract zsh-syntax-highlighting)
 
+# CMake completion in this path
+# Reference: https://github.com/zsh-users/zsh-completions
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+autoload -U compinit && compinit
+
+# Enable On-My-Zsh
 source $ZSH/oh-my-zsh.sh
 
 # Example: en_US.UTF-8 zh_CN.UTF-8 ja_JP.UTF-8 fr_FR.UTF-8 C.UTF-8
@@ -20,19 +29,13 @@ has() {
     command -v "$1" &> /dev/null
 }
 
-generate_alias() {
-    if has nvim; then
-        alias vim='nvim'
-        alias vi='nvim'
-    fi
+# alias setup
+if has nvim; then
+    alias vim='nvim'
+    alias vi='nvim'
+fi
 
-    if has lazydocker; then
-        alias lzd='lazydocker'
-    fi
-}
-
-os_zshrc() {
-
+# jq clipboard
 case "$(uname)" in
 
     "Darwin")
@@ -48,16 +51,7 @@ case "$(uname)" in
         ;;
 esac
 
-}
-
-work_rc() {
-    workrc="$HOME/.workrc/rc.local"
-
-    if [ -f $workrc ]; then
-        source $workrc
-    fi
-}
-
-generate_alias
-os_zshrc
-work_rc
+# source workrc
+if [ -f $workrc ]; then
+    source $workrc
+fi
