@@ -15,9 +15,9 @@ Requirements:
 
 # Startup
 ```bash
-ln -si .zshrc ~/.zshrc
-ln -si .tmux.conf ~/.tmux.conf
-ln -si .tmux ~/.tmux
+ln -si ~/.config/term_conf/.zshrc ~/.zshrc
+ln -si ~/.config/term_conf/.tmux.conf ~/.tmux.conf
+ln -si ~/.config/term_conf/.tmux ~/.tmux
 
 source ~/.zshrc
 ```
