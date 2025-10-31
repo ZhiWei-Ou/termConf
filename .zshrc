@@ -61,10 +61,3 @@ work_rc() {
 generate_alias
 os_zshrc
 work_rc
-
-
-export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
-
-export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
-
-alias gf=gf
