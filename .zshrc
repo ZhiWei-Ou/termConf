@@ -33,6 +33,7 @@ has() {
 if has nvim; then
     alias vim='nvim'
     alias vi='nvim'
+    export GIT_EDITOR=nvim
 fi
 
 # jq clipboard
