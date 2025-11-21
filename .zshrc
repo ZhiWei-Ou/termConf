@@ -72,6 +72,12 @@ if has nvim; then
     export GIT_EDITOR=nvim
 fi
 
+if has fzf; then
+    alias catf='cat $(fzf)'
+    alias catpf='fzf --preview="cat {}"'
+    alias vimf='vim $(fzf)'
+fi
+
 # jq clipboard
 case "$(uname)" in
 
