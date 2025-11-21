@@ -4,20 +4,24 @@ workrc="$HOME/.workrc/rc.local"
 themerc="$HOME/.workrc/theme.local"
 
 # Detect OS
+OS_COLOR="white"
 OS_ICON="$OSTYPE"
 OS_NAME="$(uname -s)"
 case "$OSTYPE" in
     darwin*)
         OS_ICON=""
         OS_NAME="macOS"
+        OS_COLOR="white"
         ;;
     linux*)
         OS_ICON=""
         OS_NAME="Linux"
+        OS_COLOR="yellow"
         ;;
     *)
         OS_ICON=""
         OS_NAME="Windows"
+        OS_COLOR="blue"
         ;;
 esac
 
@@ -53,7 +57,7 @@ export LANG=en_US.UTF-8
 #       PROMPT+=' $(git_prompt_info)'
 # new -> '➜ (macOS) term_conf git:(main)' or '(Ubuntu) term_conf git:(main)'
 #################################################################################
-PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}(${OS_ICON} ${OS_NAME})%{$reset_color%} %{$fg[cyan]%}%c%{$reset_color%}"
+PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[${OS_COLOR}]%}(${OS_ICON} ${OS_NAME})%{$reset_color%} %{$fg[cyan]%}%c%{$reset_color%}"
 PROMPT+=' $(git_prompt_info)'
 
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
