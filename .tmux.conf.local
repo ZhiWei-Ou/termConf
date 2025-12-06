@@ -410,6 +410,8 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 # move status line to top
 set -g status-position top
 
+# set -g pane-scrollbars on
+# set -g clock-mode-style 24-with-seconds
 
 # -- tpm -----------------------------------------------------------------------
 
