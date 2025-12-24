@@ -15,10 +15,16 @@ Requirements:
 
 # Startup
 ```bash
+# create symbolic links of config files
 ln -si ~/.config/term_conf/.zshrc ~/.zshrc
 ln -si ~/.config/term_conf/.tmux.conf ~/.tmux.conf
-ln -si ~/.config/term_conf/.tmux ~/.tmux
+ln -si ~/.config/term_conf/.tmux.conf.local ~/.tmux.conf.local
 
+# optional
+mkdir -p ~/.workrc
+touch ~/.workrc/rc.local
+
+# reload zsh
 source ~/.zshrc
 ```
 
