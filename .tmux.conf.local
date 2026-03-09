@@ -416,7 +416,7 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
 bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?#{mouse},on,off}'
 
 # move status line to top
-set -g status-position top
+set -g status-position bottom
 
 # set -g pane-scrollbars on
 # set -g clock-mode-style 24-with-seconds
