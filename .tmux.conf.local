@@ -8,7 +8,7 @@
 
 
 # -- bindings ------------------------------------------------------------------
-set -g status off
+set -g status on
 
 # preserve tmux stock bindings,
 # while adding bindings that don't conflict with these stock bindings
