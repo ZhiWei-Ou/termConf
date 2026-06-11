@@ -10,12 +10,6 @@
 # -- bindings ------------------------------------------------------------------
 set -g status on
 
-bind-key -n C-t if-shell -F '#{==:#{session_name},popup}' \
-  'detach-client' \
-  'display-popup -E -w 80% -h 80% -d "#{pane_current_path}" "tmux new-session -A -s popup"'
-
-set -g pane-border-lines heavy
-
 # preserve tmux stock bindings,
 # while adding bindings that don't conflict with these stock bindings
 # /!\ this disables some of Oh my tmux! bindings described in README.md
@@ -390,6 +384,8 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # this is the place to override or undo settings
 
+set -g pane-border-lines heavy
+
 # increase history size
 set -g history-limit 10000
 
@@ -408,8 +404,18 @@ unbind C-b
 set -g prefix C-b
 bind C-b send-prefix
 
-# Allow Neovim to send OSC 52 escape sequences to the host terminal for clipboard sync
-set -g set-clipboard on
+# Prefer the local OS clipboard tool, falling back to tmux's OSC 52 support
+set -s copy-command ''
+set -s set-clipboard on
+if-shell 'command -v pbcopy >/dev/null 2>&1' \
+  'set -s copy-command "pbcopy"; set -s set-clipboard off'
+if-shell '! command -v pbcopy >/dev/null 2>&1 && command -v wl-copy >/dev/null 2>&1' \
+  'set -s copy-command "wl-copy"; set -s set-clipboard off'
+if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && command -v xclip >/dev/null 2>&1' \
+  'set -s copy-command "xclip -selection clipboard >/dev/null"; set -s set-clipboard off'
+if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && ! command -v xclip >/dev/null 2>&1 && command -v xsel >/dev/null 2>&1' \
+  'set -s copy-command "xsel --clipboard --input"; set -s set-clipboard off'
+bind -T copy-mode-vi y send -X copy-pipe-and-cancel
 
 # Undercurl
 set -g default-terminal '${TERM}'
@@ -424,6 +430,12 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 
 # move status line to top
 set -g status-position bottom
+
+# Toggle floating window
+bind-key -n C-t if-shell -F '#{==:#{session_name},popup}' \
+  'detach-client' \
+  'display-popup -E -w 80% -h 80% -d "#{pane_current_path}" "tmux -f ~/.tmux.conf new-session -A -s popup"'
+
 
 # set -g pane-scrollbars on
 # set -g clock-mode-style 24-with-seconds
