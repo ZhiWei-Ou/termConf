@@ -10,6 +10,10 @@
 # -- bindings ------------------------------------------------------------------
 set -g status on
 
+bind-key -n C-t if-shell -F '#{==:#{session_name},popup}' \
+  'detach-client' \
+  'display-popup -E -w 80% -h 80% -d "#{pane_current_path}" "tmux new-session -A -s popup"'
+
 # preserve tmux stock bindings,
 # while adding bindings that don't conflict with these stock bindings
 # /!\ this disables some of Oh my tmux! bindings described in README.md
