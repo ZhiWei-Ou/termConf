@@ -409,11 +409,13 @@ set -s copy-command ''
 set -s set-clipboard on
 if-shell 'command -v pbcopy >/dev/null 2>&1' \
   'set -s copy-command "pbcopy"; set -s set-clipboard off'
-if-shell '! command -v pbcopy >/dev/null 2>&1 && command -v wl-copy >/dev/null 2>&1' \
+if-shell '! command -v pbcopy >/dev/null 2>&1 && command -v clip.exe >/dev/null 2>&1' \
+  'set -s copy-command "clip.exe"; set -s set-clipboard off'
+if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v clip.exe >/dev/null 2>&1 && command -v wl-copy >/dev/null 2>&1' \
   'set -s copy-command "wl-copy"; set -s set-clipboard off'
-if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && command -v xclip >/dev/null 2>&1' \
+if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v clip.exe >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && command -v xclip >/dev/null 2>&1' \
   'set -s copy-command "xclip -selection clipboard >/dev/null"; set -s set-clipboard off'
-if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && ! command -v xclip >/dev/null 2>&1 && command -v xsel >/dev/null 2>&1' \
+if-shell '! command -v pbcopy >/dev/null 2>&1 && ! command -v clip.exe >/dev/null 2>&1 && ! command -v wl-copy >/dev/null 2>&1 && ! command -v xclip >/dev/null 2>&1 && command -v xsel >/dev/null 2>&1' \
   'set -s copy-command "xsel --clipboard --input"; set -s set-clipboard off'
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel
 
