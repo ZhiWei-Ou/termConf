@@ -20,6 +20,12 @@ source $ZSH/oh-my-zsh.sh
 # Example: en_US.UTF-8 zh_CN.UTF-8 ja_JP.UTF-8 fr_FR.UTF-8 C.UTF-8
 export LANG=en_US.UTF-8
 
+# Claude-style file colours for ls and completion lists.
+export CLICOLOR=1
+export LSCOLORS="dxfxcxdxDxegedabagacad"
+export LS_COLORS="di=1;38;2;200;165;116:ln=38;2;240;198;116:so=38;2;138;129;120:pi=38;2;138;129;120:ex=1;38;2;255;155;114:bd=38;2;138;129;120:cd=38;2;138;129;120:su=38;2;255;155;114:sg=38;2;255;155;114:tw=38;2;138;129;120:ow=38;2;138;129;120:fi=38;2;216;208;200:*.md=38;2;216;208;200:*.txt=38;2;216;208;200:*.json=38;2;240;198;116:*.cmake=38;2;216;208;200:*.yml=38;2;240;198;116:*.yaml=38;2;240;198;116:*.tar=38;2;138;129;120:*.gz=38;2;138;129;120:*.zip=38;2;138;129;120"
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
 
 #################################################################################
 # Customize prompt
