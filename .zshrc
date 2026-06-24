@@ -33,12 +33,18 @@ export LANG=en_US.UTF-8
 # new -> '➜ (macOS) term_conf git:(main)' or '(Ubuntu) term_conf git:(main)'
 #################################################################################
 # >>>>
-PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%c%{$reset_color%}"
+claude_accent=$'%{\e[38;2;255;155;114m%}'
+claude_text=$'%{\e[38;2;216;208;200m%}'
+claude_muted=$'%{\e[38;2;138;129;120m%}'
+claude_yellow=$'%{\e[38;2;240;198;116m%}'
+claude_reset=$'%{\e[0m%}'
+
+PROMPT="%(?:${claude_accent}%1{➜%} :${claude_yellow}%1{➜%} ) ${claude_text}%c${claude_reset}"
 PROMPT+=' $(git_prompt_info)'
-ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
-ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
-ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}%1{✗%}"
-ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
+ZSH_THEME_GIT_PROMPT_PREFIX="${claude_muted}git:(${claude_accent}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="${claude_reset} "
+ZSH_THEME_GIT_PROMPT_DIRTY="${claude_muted}) ${claude_yellow}%1{✗%}"
+ZSH_THEME_GIT_PROMPT_CLEAN="${claude_muted})"
 # <<<<
 
 # Set aliases
