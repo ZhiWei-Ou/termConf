@@ -436,7 +436,7 @@ set -g status-position bottom
 # Toggle floating window
 bind-key -n C-t if-shell -F '#{==:#{session_name},popup}' \
   'detach-client' \
-  'display-popup -E -w 80% -h 80% -d "#{pane_current_path}" "tmux -f ~/.tmux.conf new-session -A -s popup"'
+  'display-popup -E -b rounded -S "fg=#ff9b72,bg=default" -w 80% -h 80% -d "#{pane_current_path}" "tmux -f ~/.tmux.conf new-session -A -s popup"'
 
 
 # set -g pane-scrollbars on
