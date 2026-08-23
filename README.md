@@ -13,6 +13,36 @@ Requirements:
 - [on-my-zsh](https://ohmyz.sh/#install)
 - [CMake-Completion](https://github.com/zsh-users/zsh-completions)
 
+## Windows Terminal font
+
+Choose and install one of these Chinese fallback fonts:
+
+- `Noto Sans Mono CJK SC`: download the release ZIP from
+  [noto-cjk](https://github.com/notofonts/noto-cjk/).
+- `Sarasa Mono SC`: download it from
+  [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic/).
+
+Open the Windows Terminal `settings.json` file and configure the default font.
+For example, to use `Sarasa Mono SC`:
+
+```json
+{
+  "profiles": {
+    "defaults": {
+      "font": {
+        "face": "JetBrainsMono Nerd Font Mono, Sarasa Mono SC",
+        "size": 18,
+        "weight": "normal"
+      }
+    }
+  }
+}
+```
+
+The second font in `face` is the fallback font used for Chinese characters. To
+use Noto instead, set `face` to
+`"JetBrainsMono Nerd Font Mono, Noto Sans Mono CJK SC"`.
+
 # Startup
 ```bash
 # create symbolic links of config files
