@@ -89,6 +89,17 @@ independent popup opacity or show the pane's text through the popup.
 The calendar uses the existing Perl dependency; no `cal` command or plugin is
 required. Older tmux versions keep the date as plain text.
 
+## tmux time zones
+
+Click the clock label to view the local time, UTC, Beijing, Tokyo, London,
+New York, and Los Angeles. The popup shows each date and UTC offset at the
+moment it opens, including daylight saving time. Press `Esc` to close it.
+Dates use `MM-DD` in terminals narrower than 44 columns.
+It uses the same terminal background as the calendar and requires tmux 3.4+.
+Linux/WSL and macOS use Perl and `/usr/share/zoneinfo` (install `tzdata` if
+missing). Windows under Cygwin/MSYS uses the existing `powershell.exe`
+dependency and Windows time zone rules for the city clocks.
+
 # FAQ
 - This repo has the `zsh-syntax-highlighting` feature enabled by default.
 > We can install it by:
