@@ -37,6 +37,7 @@
 - 📡 **Network monitoring** — download and upload rates in the status bar; click to see the interface, IP addresses, and traffic totals.
 - 📅 **Calendar and world clocks** — click the date or time to open a card, then click outside to close it.
 - 🪟 **Floating terminal** — toggle a reusable terminal with `Ctrl+backtick`.
+- 🌌 **Night sky screensaver** — twinkling stars, occasional shooting stars, and a sleepy cat; press any key to return.
 - ⚡ **Shell conveniences** — Git status in the prompt, syntax highlighting, extra completions, and a separate file for personal settings.
 
 <a name="quick-start"></a>
@@ -123,8 +124,11 @@ The prefix is **`Ctrl+b`**: press it, release it, then press the next key.
 | `Prefix` then `h` / `j` / `k` / `l` | Move between panes. |
 | `Prefix` then `m` | Toggle mouse support. |
 | `Prefix` then `r` | Reload tmux configuration. |
+| `Prefix` then `S` (`Shift+s`) | Open the night sky screensaver; any key closes it. |
 | `Prefix` then `d` | Detach while keeping the session running. |
 | `Ctrl+backtick` | Open or close the floating terminal without a prefix. |
+
+The screensaver covers the terminal with a borderless animation while your panes keep running. It uses the existing Perl dependency, adapts to terminal resizing, and consumes the key used to dismiss it. It opens only from the shortcut; there is no automatic idle timer.
 
 Reattach to the example session:
 
