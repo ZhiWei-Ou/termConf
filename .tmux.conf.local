@@ -576,7 +576,6 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       # Only the heading can be selected; the data rows stay open on clicks.
 #       my $row = $rows[$index];
 #       my $heading = $index == 1;
-#       $row =~ s/esc(?=#\[|\s*$)/×  / if $heading;
 #       # tmux 3.4 counts style bytes as text and appends a spurious > marker.
 #       push @menu, ($heading ? "" : "-") . $base . ($row || " ") . "#[hidden]", "", "";
 #     }
@@ -605,8 +604,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #     $days[1] = 29 if $year % 4 == 0 && ($year % 100 != 0 || $year % 400 == 0);
 #     my $offset = ($weekday - $today + 7) % 7;
 #     my $title = strftime("%b %Y", @now);
-#     print "\e[?25l\n   \e[1;38;2;255;155;114m$title\e[0m";
-#     print " " x (18 - length($title)), "\e[38;2;138;129;120mesc\e[0m\n\n";
+#     print "\e[?25l\n   \e[1;38;2;255;155;114m$title\e[0m\n\n";
 #     print "\e[38;2;138;129;120m   Mo Tu We Th Fr Sa Su\e[0m\n";
 #     for my $week (0 .. 5) {
 #       print "   ";
@@ -671,8 +669,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #     esac
 #   } | perl -e '
 #     my $date_width = $ENV{TMUX_TIME_COMPACT} ? 5 : 10;
-#     print "\e[?25l\n  \e[1;38;2;255;155;114mTime zones\e[0m",
-#       " " x (15 + $date_width), "\e[38;2;138;129;120mesc\e[0m\n\n";
+#     print "\e[?25l\n  \e[1;38;2;255;155;114mTime zones\e[0m\n\n";
 #     printf "\e[38;2;138;129;120m  %-12s %-5s  %-*s  %s\e[0m\n", "Zone", "Time", $date_width, "Date", "UTC";
 #     while (<STDIN>) {
 #       chomp;
@@ -780,7 +777,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 # }
 #
 # _network_details() {
-#   printf '\033[?25l\n  \033[1;38;2;255;155;114mNetwork\033[0m                                                \033[38;2;138;129;120mesc\033[0m\n\n  Sampling…\n'
+#   printf '\033[?25l\n  \033[1;38;2;255;155;114mNetwork\033[0m\n\n  Sampling…\n'
 #   platform=$(uname -s)
 #   sample=$(_network_sample "$platform") || sample=
 #   {
@@ -828,8 +825,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #     binmode STDIN, ":utf8";
 #     binmode STDOUT, ":utf8";
 #     chomp(my $sample = <STDIN>);
-#     print "\e[0m\e[H\e[2J\e[?25l\n  \e[1;38;2;255;155;114mNetwork\e[0m",
-#       " " x 48, "\e[38;2;138;129;120mesc\e[0m\n\n";
+#     print "\e[0m\e[H\e[2J\e[?25l\n  \e[1;38;2;255;155;114mNetwork\e[0m\n\n";
 #     if (!$sample) { print "  Network statistics unavailable.\n"; exit; }
 #     my @sample = split /\t/, $sample;
 #     my %info;
