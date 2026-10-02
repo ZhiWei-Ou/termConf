@@ -274,17 +274,19 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 tmux_conf_theme_status_left=""
-# User ranges let the date and clock handle clicks without changing the window list.
+# User ranges let the status labels handle clicks without changing the window list.
+tmux_conf_theme_status_network="#{network_speed}  "
 tmux_conf_theme_status_date="%m-%d"
 tmux_conf_theme_status_time=" #[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold]"
 %if #{>=:#{version},3.4}
 # Use spaces between styles inside the width conditional. Mouse ranges overlap
 # one cell, so isolate the leading gap and switch ranges before the final cap.
+tmux_conf_theme_status_network="#{?#{network_speed},#[norange] #[range=user|network]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] #{network_speed} #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]#[fg=$tmux_conf_theme_colour_3 bg=default],}"
 tmux_conf_theme_status_date="#[norange] #[range=user|calendar]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] %m-%d #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]#[fg=$tmux_conf_theme_colour_3 bg=default]"
 tmux_conf_theme_status_time="#[norange] #[range=user|timezones]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] %R #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]"
 %endif
 # Keep the clock visible; hide network speed and the date on narrow terminals.
-tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},#{network_speed},}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
+tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},$tmux_conf_theme_status_network,}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -445,7 +447,7 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 # keep the status line at the bottom
 set -g status-position bottom
 
-# Click the date for a calendar or the clock for world times (Esc closes either).
+# Click the status labels for network details, a calendar, or world times.
 # Use the terminal background so the popup follows terminal transparency.
 %if #{>=:#{version},3.4}
 bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' {
@@ -461,7 +463,12 @@ bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' 
         -w 44 -h 14 -x R -y S -e TMUX_TIME_COMPACT=0 "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _timezones"
     }
   } {
-    select-window -t =
+    if-shell -F '#{==:#{mouse_status_range},network}' {
+      display-popup -b rounded -s 'fg=#d8d0c8,bg=terminal' -S 'fg=#5c554e,bg=terminal' \
+        -w 64 -h 16 -x R -y S "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _network_details"
+    } {
+      select-window -t =
+    }
   }
 }
 %endif
@@ -679,32 +686,117 @@ tmux_conf_uninstall_plugins_on_reload=true
 #   printf '%s %s\n' "$counters" "$timestamp"
 # }
 #
-# # usage: #{network_speed} (download/upload on the default network interface)
-# network_speed() {
-#   platform=$(uname -s)
-#   first=$(_network_snapshot "$platform" 2>/dev/null) || { printf '\n'; return; }
+# # Share the same interface selection, sampling, and units between both views.
+# _network_sample() {
+#   first=$(_network_snapshot "$1" 2>/dev/null) || return 1
 #   sleep 1
-#   second=$(_network_snapshot "$platform" 2>/dev/null) || { printf '\n'; return; }
+#   second=$(_network_snapshot "$1" 2>/dev/null) || return 1
 #   printf '%s\n%s\n' "$first" "$second" | perl -e '
-#     use utf8;
-#     binmode STDOUT, ":utf8";
 #     my @first = split " ", <STDIN>;
 #     my @second = split " ", <STDIN>;
 #     my $elapsed = $second[3] - $first[3];
 #     if ($first[0] ne $second[0] || $elapsed <= 0 ||
 #         $second[1] < $first[1] || $second[2] < $first[2]) {
-#       print "\n";
-#       exit;
+#       exit 1;
 #     }
-#     sub rate {
-#       my ($bytes) = @_;
-#       my @units = ("B/s", "KiB/s", "MiB/s", "GiB/s");
+#     sub bytes {
+#       my ($bytes, $suffix) = @_;
+#       my @units = ("B", "KiB", "MiB", "GiB", "TiB", "PiB");
 #       my $unit = 0;
 #       while ($bytes >= 1024 && $unit < $#units) { $bytes /= 1024; $unit++; }
-#       return sprintf($unit ? "%.1f%s" : "%.0f%s", $bytes, $units[$unit]);
+#       return sprintf($unit ? "%.1f%s%s%s" : "%.0f%s%s%s",
+#         $bytes, $suffix ? "" : " ", $units[$unit], $suffix);
 #     }
-#     printf "↓ %s ↑ %s  \n", rate(($second[1] - $first[1]) / $elapsed),
-#       rate(($second[2] - $first[2]) / $elapsed);
+#     print join("\t", $second[0], bytes(($second[1] - $first[1]) / $elapsed, "/s"),
+#       bytes(($second[2] - $first[2]) / $elapsed, "/s"),
+#       bytes($second[1], ""), bytes($second[2], ""), $second[3]), "\n";
+#   '
+# }
+#
+# # usage: #{network_speed} (download/upload on the default network interface)
+# network_speed() {
+#   sample=$(_network_sample "$(uname -s)") || { printf '\n'; return; }
+#   printf '%s\n' "$sample" | perl -e '
+#     use utf8;
+#     binmode STDOUT, ":utf8";
+#     my @sample = split /\t/, <STDIN>;
+#     printf "↓ %s ↑ %s\n", @sample[1, 2];
+#   '
+# }
+#
+# _network_details() {
+#   printf '\033[?25l\n  \033[1;38;2;255;155;114mNetwork\033[0m                                                \033[38;2;138;129;120mesc\033[0m\n\n  Sampling…\n'
+#   platform=$(uname -s)
+#   sample=$(_network_sample "$platform") || sample=
+#   {
+#     printf '%s\n' "$sample"
+#     if [ -n "$sample" ]; then
+#       interface=$(printf '%s\n' "$sample" | cut -f1)
+#       case "$platform" in
+#         Linux)
+#           printf 'Interface\t%s\n' "$interface"
+#           ip -o -4 addr show dev "$interface" scope global 2>/dev/null | awk '
+#             $3 == "inet" && !/tentative|deprecated/ { sub(/\/.*/, "", $4); print "IPv4\t" $4; exit }'
+#           ip -o -6 addr show dev "$interface" scope global 2>/dev/null | awk '
+#             $3 == "inet6" && !/tentative|deprecated/ { sub(/\/.*/, "", $4); print "IPv6\t" $4; exit }'
+#           ;;
+#         Darwin)
+#           printf 'Interface\t%s\n' "$interface"
+#           ifconfig "$interface" 2>/dev/null | awk '
+#             $1 == "inet" && !v4 { print "IPv4\t" $2; v4 = 1 }
+#             $1 == "inet6" && $2 !~ /^fe[89ab]/ && $2 != "::1" && !/tentative|deprecated/ && !v6 {
+#               sub(/%.*/, "", $2); print "IPv6\t" $2; v6 = 1
+#             }'
+#           ;;
+#         CYGWIN*|MSYS*|MINGW*)
+#           TMUX_NETWORK_INTERFACE="$interface" powershell.exe -NoLogo -NoProfile -NonInteractive -Command '
+#             [Console]::OutputEncoding = New-Object Text.UTF8Encoding $false
+#             $ErrorActionPreference = "Stop"
+#             try {
+#               $index = [uint32]$env:TMUX_NETWORK_INTERFACE
+#               $adapter = Get-NetIPInterface -InterfaceIndex $index | Select-Object -First 1
+#               "Interface`t{0}" -f $adapter.InterfaceAlias
+#               $addresses = @(Get-NetIPAddress -InterfaceIndex $index -AddressState Preferred -ErrorAction SilentlyContinue |
+#                 Where-Object { -not $_.SkipAsSource })
+#               $v4 = $addresses | Where-Object { $_.AddressFamily -eq "IPv4" } | Select-Object -First 1
+#               $v6 = $addresses | Where-Object { $_.AddressFamily -eq "IPv6" -and $_.IPAddress -notmatch "^fe[89ab]|^::1$" } |
+#                 Select-Object -First 1
+#               "IPv4`t{0}" -f $v4.IPAddress
+#               "IPv6`t{0}" -f $v6.IPAddress
+#             } catch {}
+#           ' 2>/dev/null | tr -d '\r'
+#           ;;
+#       esac
+#     fi
+#   } | perl -MPOSIX=strftime -e '
+#     use utf8;
+#     binmode STDIN, ":utf8";
+#     binmode STDOUT, ":utf8";
+#     chomp(my $sample = <STDIN>);
+#     print "\e[0m\e[H\e[2J\e[?25l\n  \e[1;38;2;255;155;114mNetwork\e[0m",
+#       " " x 48, "\e[38;2;138;129;120mesc\e[0m\n\n";
+#     if (!$sample) { print "  Network statistics unavailable.\n"; exit; }
+#     my @sample = split /\t/, $sample;
+#     my %info;
+#     while (<STDIN>) {
+#       chomp;
+#       my ($label, $value) = split /\t/, $_, 2;
+#       $value =~ s/\p{Cc}//g;
+#       $info{$label} = $value;
+#     }
+#     $info{Interface} ||= $sample[0];
+#     for my $label ("Interface", "IPv4", "IPv6") {
+#       my $value = $info{$label} || "unavailable";
+#       my $limit = $value =~ /[^\x00-\x7f]/ ? 22 : 46;
+#       $value = substr($value, 0, $limit - 1) . "…" if length($value) > $limit;
+#       my $style = $label eq "Interface" ? "\e[1;38;2;255;155;114m" : "";
+#       printf "  \e[38;2;138;129;120m%-10s\e[0m %s%s\e[0m\n", $label, $style, $value;
+#     }
+#     print "\n\e[38;2;138;129;120m  Direction     Current           Total\e[0m\n";
+#     printf "  %-12s  \e[1;38;2;255;155;114m%-16s\e[0m  %s\n", "↓ Download", $sample[1], $sample[3];
+#     printf "  %-12s  \e[1;38;2;255;155;114m%-16s\e[0m  %s\n", "↑ Upload", $sample[2], $sample[4];
+#     print "\n  \e[38;2;138;129;120mSampled ", strftime("%H:%M:%S", localtime $sample[5]),
+#       " · totals since interface reset\e[0m\n";
 #   '
 # }
 #

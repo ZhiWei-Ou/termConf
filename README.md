@@ -68,9 +68,16 @@ network interface. Units scale from B/s to KiB/s, MiB/s, and GiB/s. The bar
 refreshes every two seconds; slower system queries can delay network samples.
 Network speed is hidden below 80 columns, and the date below 120 columns.
 
+With tmux 3.4+ and mouse support enabled, click either rate to open network
+details. The popup samples the default interface when opened and shows its
+name, first available IPv4 and non-link-local IPv6 address, download/upload
+rates, and total received/sent bytes. Totals come from the system interface
+counters and may reset when the interface or system restarts. Press `Esc` to
+close it; its background follows the terminal, like the calendar popup.
+
 - Linux and WSL use `ip` from iproute2 and `/proc/net/dev`. In WSL, the rates
   cover the WSL network interface rather than all Windows applications.
-- macOS uses the built-in `route` and `netstat` commands.
+- macOS uses the built-in `route`, `netstat`, and `ifconfig` commands.
 - Windows with tmux under Cygwin/MSYS uses `powershell.exe` and the built-in
   NetTCPIP/NetAdapter modules. PowerShell must be available on `PATH`.
 
