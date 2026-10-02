@@ -615,7 +615,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         if ($day < 1 || $day > $days[$month]) { print "   "; next; }
 #         if ($day == $today) { print "\e[1;38;2;8;8;8;48;2;255;155;114m"; }
 #         elsif ($column >= 5) { print "\e[38;2;138;129;120m"; }
-#         printf "%2d\e[0m ", $day;
+#         printf "%2d \e[0m", $day;
 #       }
 #       print "\n";
 #     }
