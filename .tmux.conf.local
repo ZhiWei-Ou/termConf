@@ -448,24 +448,24 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 set -g status-position bottom
 
 # Click the status labels for network details, a calendar, or world times.
-# Use the terminal background so the popup follows terminal transparency.
+# Native menus can close on outside clicks. Source the generated command in the
+# original mouse event so tmux 3.4 keeps mouse handling enabled for the card.
 %if #{>=:#{version},3.4}
 bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' {
-  display-popup -b rounded -s 'fg=#d8d0c8,bg=terminal' -S 'fg=#5c554e,bg=terminal' \
-    -w 29 -h 13 -x R -y S "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _calendar"
+  run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _status_menu _calendar '#{socket_path}.status-menu.#{client_pid}'"
+  source-file -F '#{socket_path}.status-menu.#{client_pid}'
 } {
   if-shell -F '#{==:#{mouse_status_range},timezones}' {
     if-shell -F '#{e|<:#{client_width},44}' {
-      display-popup -b rounded -s 'fg=#d8d0c8,bg=terminal' -S 'fg=#5c554e,bg=terminal' \
-        -w 100% -h 14 -x R -y S -e TMUX_TIME_COMPACT=1 "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _timezones"
+      run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=1 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
     } {
-      display-popup -b rounded -s 'fg=#d8d0c8,bg=terminal' -S 'fg=#5c554e,bg=terminal' \
-        -w 44 -h 14 -x R -y S -e TMUX_TIME_COMPACT=0 "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _timezones"
+      run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=0 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
     }
+    source-file -F '#{socket_path}.status-menu.#{client_pid}'
   } {
     if-shell -F '#{==:#{mouse_status_range},network}' {
-      display-popup -b rounded -s 'fg=#d8d0c8,bg=terminal' -S 'fg=#5c554e,bg=terminal' \
-        -w 64 -h 16 -x R -y S "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _network_details"
+      run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _status_menu _network_details '#{socket_path}.status-menu.#{client_pid}'"
+      source-file -F '#{socket_path}.status-menu.#{client_pid}'
     } {
       select-window -t =
     }
@@ -540,6 +540,61 @@ tmux_conf_uninstall_plugins_on_reload=true
 # EOF
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
+#
+# _status_menu() {
+#   "$1" | perl -MEncode=encode -MFcntl=O_WRONLY,O_CREAT,O_TRUNC -0777 -e '
+#     use utf8;
+#     binmode STDIN, ":utf8";
+#     my $path = shift;
+#     my $text = <STDIN>;
+#     # Network sampling redraws its screen; only the completed snapshot is used.
+#     $text =~ s/.*\e\[2J//s;
+#     # Menu formats and drawing each consume one level of literal hash escapes.
+#     $text =~ s/#/####/g;
+#     my $base = "#[fg=#d8d0c8,bg=terminal,none]";
+#     sub style {
+#       my @codes = split /;/, shift;
+#       my @style;
+#       while (@codes) {
+#         my $code = shift @codes;
+#         if ($code == 0) { push @style, "fg=#d8d0c8", "bg=terminal", "none"; }
+#         elsif ($code == 1) { push @style, "bold"; }
+#         elsif ($code == 4) { push @style, "underscore"; }
+#         elsif ($code == 38 && @codes >= 4 && shift(@codes) == 2) {
+#           push @style, sprintf("fg=#%02x%02x%02x", splice(@codes, 0, 3));
+#         }
+#       }
+#       return "#[" . join(",", @style) . "]";
+#     }
+#     $text =~ s/\e\[([\d;]+)m/style($1)/ge;
+#     $text =~ s/\e\[[0-?]*[ -\/]*[\@-~]//g;
+#     my @rows = split /\n/, $text;
+#     my @menu = ("display-menu", "-O", "-C", "-", "-b", "rounded",
+#       "-s", "fg=#d8d0c8,bg=terminal", "-H", "fg=#d8d0c8,bg=terminal",
+#       "-S", "fg=#5c554e,bg=terminal", "-x", "R", "-y", "S", "--");
+#     for my $index (0 .. $#rows) {
+#       # Only the heading can be selected; the data rows stay open on clicks.
+#       my $row = $rows[$index];
+#       my $heading = $index == 1;
+#       $row =~ s/esc(?=#\[|\s*$)/×  / if $heading;
+#       # tmux 3.4 counts style bytes as text and appends a spurious > marker.
+#       push @menu, ($heading ? "" : "-") . $base . ($row || " ") . "#[hidden]", "", "";
+#     }
+#     sub quote {
+#       my $text = shift;
+#       my $q = chr(39);
+#       $text =~ s/$q/$q\\$q$q/g;
+#       return $q . $text . $q;
+#     }
+#     sysopen(my $file, $path, O_WRONLY | O_CREAT | O_TRUNC, 0600) or die "$path: $!\n";
+#     # Remove the private command file once source-file has parsed it.
+#     my $remove = "rm -f -- " . quote($path);
+#     $remove =~ s/#/##/g;
+#     print $file encode("UTF-8", "run-shell " . quote($remove) . "\n" .
+#       join(" ", map { quote($_) } @menu) . "\n");
+#     close $file or die "$path: $!\n";
+#   ' "$2"
+# }
 #
 # _calendar() {
 #   perl -MPOSIX=strftime -e '

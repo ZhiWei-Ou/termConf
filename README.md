@@ -72,8 +72,9 @@ With tmux 3.4+ and mouse support enabled, click either rate to open network
 details. The popup samples the default interface when opened and shows its
 name, first available IPv4 and non-link-local IPv6 address, download/upload
 rates, and total received/sent bytes. Totals come from the system interface
-counters and may reset when the interface or system restarts. Press `Esc` to
-close it; its background follows the terminal, like the calendar popup.
+counters and may reset when the interface or system restarts. Click outside
+the card or its heading, or press `Esc` or `q`, to close it. Its background
+follows the terminal, like the calendar popup.
 
 - Linux and WSL use `ip` from iproute2 and `/proc/net/dev`. In WSL, the rates
   cover the WSL network interface rather than all Windows applications.
@@ -89,7 +90,8 @@ the network readout until a valid sample is available.
 
 With tmux 3.4 or newer and mouse support enabled, click the status bar date to
 open a calendar above it. Weeks start on Monday, and today is highlighted in
-orange with an underline. Press `Esc` to close the popup. The date appears at
+orange with an underline. Click outside the card or its heading, or press
+`Esc` or `q`, to close it. The date appears at
 120 columns or wider. The popup uses the terminal default background, so it
 follows the terminal emulator's transparency settings. tmux does not provide
 independent popup opacity or show the pane's text through the popup.
@@ -100,7 +102,8 @@ required. Older tmux versions keep the date as plain text.
 
 Click the clock label to view the local time, UTC, Beijing, Tokyo, London,
 New York, and Los Angeles. The popup shows each date and UTC offset at the
-moment it opens, including daylight saving time. Press `Esc` to close it.
+moment it opens, including daylight saving time. Click outside the card or
+its heading, or press `Esc` or `q`, to close it.
 Dates use `MM-DD` in terminals narrower than 44 columns.
 It uses the same terminal background as the calendar and requires tmux 3.4+.
 Linux/WSL and macOS use Perl and `/usr/share/zoneinfo` (install `tzdata` if
