@@ -78,6 +78,13 @@ your-command completion zsh > "$ZSH_COMPLETION_DIR/_your-command"
 Use the completion-generation syntax supported by your command, then start a
 new Zsh session to load the new completion file.
 
+## tmux window names
+
+Automatic window labels use the basename of the active pane's current directory
+and update when the directory or active pane changes. For example,
+`~/.config/term_conf` appears as `term_conf`. Manually renamed windows keep their
+custom names. Naming uses tmux's built-in format without launching a shell.
+
 ## tmux network speed
 
 The status bar shows download (`↓`) and upload (`↑`) rates for the default

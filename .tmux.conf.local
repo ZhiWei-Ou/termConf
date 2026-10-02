@@ -36,6 +36,10 @@ tmux_conf_new_session_retain_current_path=false
 
 # -- windows & pane creation ---------------------------------------------------
 
+# Automatically name windows after the active pane's current directory.
+setw -g automatic-rename-format '#{b:pane_current_path}'
+setw -g automatic-rename on
+
 # new window retains current path, possible values are:
 #   - true
 #   - false (default)
