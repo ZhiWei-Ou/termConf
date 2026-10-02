@@ -44,19 +44,28 @@ use Noto instead, set `face` to
 `"JetBrainsMono Nerd Font Mono, Noto Sans Mono CJK SC"`.
 
 # Startup
+
+Install the dependencies above, then run the setup script from your checkout.
+Linux, macOS, and WSL:
+
 ```bash
-# create symbolic links of config files
-ln -si ~/.config/term_conf/.zshrc ~/.zshrc
-ln -si ~/.config/term_conf/.tmux.conf ~/.tmux.conf
-ln -si ~/.config/term_conf/.tmux.conf.local ~/.tmux.conf.local
-
-# optional
-mkdir -p ~/.workrc
-touch ~/.workrc/rc.local
-
-# reload zsh
+./setup.sh
 source ~/.zshrc
 ```
+
+From Windows CMD or PowerShell, run `setup.bat` (or `./setup.bat` in PowerShell).
+It uses your default WSL distribution and installs the configuration in the WSL
+user's Linux home directory.
+
+Setup links `.zshrc`, `.tmux.conf`, and `.tmux.conf.local`, creates
+`ZSH_COMPLETION_DIR`, and initializes `~/.workrc/rc.local` with commented examples.
+Existing configuration files or different links are backed up beside the original
+paths before linking. Correct links and existing `rc.local` content are kept on
+repeat runs. Real directories at configuration-file paths are not replaced.
+
+For another target home directory, use `./setup.sh /path/to/home` or
+`setup.bat /path/to/home`. The completion path respects `ZSH_CUSTOM`.
+Setup does not execute shell startup files or install the dependencies.
 
 # Advanced
 We can create a `~/.workrc/rc.local` to export the environment variables for work.
