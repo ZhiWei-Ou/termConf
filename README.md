@@ -82,8 +82,9 @@ new Zsh session to load the new completion file.
 
 Automatic window labels use the basename of the active pane's current directory
 and update when the directory or active pane changes. For example,
-`~/.config/term_conf` appears as `term_conf`. Manually renamed windows keep their
-custom names. Naming uses tmux's built-in format without launching a shell.
+`~/.config/term_conf` appears as `term_conf`; the home directory appears as `~`.
+Manually renamed windows keep their custom names. Naming uses tmux's built-in
+format without launching a shell.
 
 ## tmux network speed
 
