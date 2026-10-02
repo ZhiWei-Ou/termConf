@@ -274,8 +274,13 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 tmux_conf_theme_status_left=""
+# User ranges let the date handle clicks without changing the window list.
+tmux_conf_theme_status_date="%m-%d"
+%if #{>=:#{version},3.4}
+tmux_conf_theme_status_date="#[range=user|calendar]%m-%d#[range=right]"
+%endif
 # Keep the clock visible; hide network speed and the date on narrow terminals.
-tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},#{network_speed},}#{?#{e|>=:#{client_width},120},%m-%d  ,}#[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold] "
+tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},#{network_speed},}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date  ,}#[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold] "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -436,6 +441,14 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 # keep the status line at the bottom
 set -g status-position bottom
 
+# Click the date to show this month above the status line (Esc closes it).
+# Use the terminal background so the popup follows terminal transparency.
+%if #{>=:#{version},3.4}
+bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' \
+  'display-popup -b rounded -s "fg=#d8d0c8,bg=terminal" -S "fg=#5c554e,bg=terminal" -w 29 -h 13 -x R -y S "cut -c3- '\''$TMUX_CONF_LOCAL'\'' | sh -s _calendar"' \
+  'select-window -t ='
+%endif
+
 # Toggle floating window
 bind-key -n 'C-`' if-shell -F '#{==:#{session_name},popup}' \
   'detach-client' \
@@ -503,6 +516,32 @@ tmux_conf_uninstall_plugins_on_reload=true
 # EOF
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
+#
+# _calendar() {
+#   perl -MPOSIX=strftime -e '
+#     my @now = localtime;
+#     my ($today, $month, $year, $weekday) = @now[3, 4, 5, 6];
+#     $year += 1900;
+#     my @days = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+#     $days[1] = 29 if $year % 4 == 0 && ($year % 100 != 0 || $year % 400 == 0);
+#     my $offset = ($weekday - $today + 7) % 7;
+#     my $title = strftime("%b %Y", @now);
+#     print "\e[?25l\n   \e[1;38;2;255;155;114m$title\e[0m";
+#     print " " x (18 - length($title)), "\e[38;2;138;129;120mesc\e[0m\n\n";
+#     print "\e[38;2;138;129;120m   Mo Tu We Th Fr Sa Su\e[0m\n";
+#     for my $week (0 .. 5) {
+#       print "   ";
+#       for my $column (0 .. 6) {
+#         my $day = $week * 7 + $column - $offset + 1;
+#         if ($day < 1 || $day > $days[$month]) { print "   "; next; }
+#         if ($day == $today) { print "\e[1;4;38;2;255;155;114m"; }
+#         elsif ($column >= 5) { print "\e[38;2;138;129;120m"; }
+#         printf "%2d\e[0m ", $day;
+#       }
+#       print "\n";
+#     }
+#   '
+# }
 #
 # _network_snapshot() {
 #   case "$1" in

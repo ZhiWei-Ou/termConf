@@ -78,6 +78,17 @@ Sampling uses Perl, which is already required by Oh my tmux!. No tmux plugin
 is needed. Interface changes, counter resets, and unavailable statistics clear
 the network readout until a valid sample is available.
 
+## tmux calendar
+
+With tmux 3.4 or newer and mouse support enabled, click the status bar date to
+open a calendar above it. Weeks start on Monday, and today is highlighted in
+orange with an underline. Press `Esc` to close the popup. The date appears at
+120 columns or wider. The popup uses the terminal default background, so it
+follows the terminal emulator's transparency settings. tmux does not provide
+independent popup opacity or show the pane's text through the popup.
+The calendar uses the existing Perl dependency; no `cal` command or plugin is
+required. Older tmux versions keep the date as plain text.
+
 # FAQ
 - This repo has the `zsh-syntax-highlighting` feature enabled by default.
 > We can install it by:
