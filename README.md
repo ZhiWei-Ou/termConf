@@ -1,35 +1,47 @@
-<h1 align="center">termConf</h1>
+<h1 align="center">🖥️ termConf</h1>
 
 <p align="center">
   Zsh and tmux dotfiles with a warm orange theme and a clickable status bar.
 </p>
 
 <p align="center">
+  <a href=".zshrc"><img src="https://img.shields.io/badge/Zsh-shell-ff9b72?style=flat-square&amp;logo=zsh&amp;logoColor=white" alt="Zsh shell configuration"></a>
+  <a href=".tmux.conf.local"><img src="https://img.shields.io/badge/tmux-3.4%2B-ff9b72?style=flat-square&amp;logo=tmux&amp;logoColor=white" alt="tmux 3.4+ for clickable status cards"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff9b72?style=flat-square" alt="MIT License"></a>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#quick-start">Quick Start</a> ·
-  <a href="#usage">Usage</a> ·
-  <a href="#configuration">Configuration</a> ·
-  <a href="https://github.com/ZhiWei-Ou/termConf/issues">Issues</a>
+  <a href="#platform-details"><img src="https://img.shields.io/badge/Linux-1f1f1f?style=flat-square&amp;logo=linux&amp;logoColor=white" alt="Linux platform details"></a>
+  <a href="#platform-details"><img src="https://img.shields.io/badge/macOS-1f1f1f?style=flat-square&amp;logo=apple&amp;logoColor=white" alt="macOS platform details"></a>
+  <a href="#platform-details"><img src="https://img.shields.io/badge/Windows-WSL-1f1f1f?style=flat-square&amp;logo=linux&amp;logoColor=white" alt="Windows setup through WSL"></a>
+</p>
+
+<p align="center">
+  <a href="#features">✨ Features</a> ·
+  <a href="#quick-start">🚀 Quick Start</a> ·
+  <a href="#usage">🧭 Usage</a> ·
+  <a href="#configuration">⚙️ Configuration</a> ·
+  <a href="https://github.com/ZhiWei-Ou/termConf/issues">🐛 Issues</a>
 </p>
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/07a30c92-c975-4a79-b33a-407dc09bb273" alt="termConf terminal preview with Zsh and the tmux status bar" width="960">
 </p>
 
-## Features
+<a name="features"></a>
 
-- **Matching Zsh and tmux colors** — warm orange accents, muted labels, and terminal-default backgrounds.
-- **Directory-based window names** — labels follow the active pane's directory basename; home appears as `~`. The current window has a rounded tab.
-- **Network monitoring** — download and upload rates in the status bar; click to see the interface, IP addresses, and traffic totals.
-- **Calendar and world clocks** — click the date or time to open a card, then click outside to close it.
-- **Floating terminal** — toggle a reusable terminal with `Ctrl+backtick`.
-- **Shell conveniences** — Git status in the prompt, syntax highlighting, extra completions, and a separate file for personal settings.
+## ✨ Features
 
-## Quick Start
+- 🎨 **Matching Zsh and tmux colors** — warm orange accents, muted labels, and terminal-default backgrounds.
+- 📁 **Directory-based window names** — labels follow the active pane's directory basename; home appears as `~`. The current window has a rounded tab.
+- 📡 **Network monitoring** — download and upload rates in the status bar; click to see the interface, IP addresses, and traffic totals.
+- 📅 **Calendar and world clocks** — click the date or time to open a card, then click outside to close it.
+- 🪟 **Floating terminal** — toggle a reusable terminal with `Ctrl+backtick`.
+- ⚡ **Shell conveniences** — Git status in the prompt, syntax highlighting, extra completions, and a separate file for personal settings.
+
+<a name="quick-start"></a>
+
+## 🚀 Quick Start
 
 Use Zsh and tmux on Linux, macOS, or WSL. On Windows, the setup entry point installs into your default WSL distribution.
 
@@ -75,7 +87,9 @@ tmux new-session -s dev
 
 You should see directory-based window labels and the clock at the bottom. At **120 columns or wider**, all three status cards can be shown when network statistics are available.
 
-## Usage
+<a name="usage"></a>
+
+## 🧭 Usage
 
 ### Status cards
 
@@ -87,9 +101,9 @@ Mouse support is enabled by default. With tmux 3.4+, click a status label to ope
 
 | Label | What it shows |
 | --- | --- |
-| Download / upload | Default network interface, IPv4/IPv6 addresses, current rates, and received/sent totals. |
-| Date | Current month, Monday-first weeks, and today's date highlighted in orange. |
-| Time | Local time, UTC, Beijing, Tokyo, London, New York, and Los Angeles, with dates and UTC offsets. |
+| 📡 Download / upload | Default network interface, IPv4/IPv6 addresses, current rates, and received/sent totals. |
+| 📅 Date | Current month, Monday-first weeks, and today's date highlighted in orange. |
+| 🌍 Time | Local time, UTC, Beijing, Tokyo, London, New York, and Los Angeles, with dates and UTC offsets. |
 
 Click outside a card or its heading, or press `Esc` or `q`, to close it.
 
@@ -142,7 +156,9 @@ From Windows:
 setup.bat /path/to/home
 ```
 
-## Configuration
+<a name="configuration"></a>
+
+## ⚙️ Configuration
 
 ### Files
 
@@ -214,7 +230,7 @@ Status cards use the terminal's default background and follow its transparency s
 ### Windows Terminal
 
 <details>
-<summary>Fonts and Chinese fallback</summary>
+<summary>🔤 Fonts and Chinese fallback</summary>
 
 Select a Nerd Font as the primary font. For Chinese fallback, install either [Noto Sans Mono CJK SC](https://github.com/notofonts/noto-cjk/) or [Sarasa Mono SC](https://github.com/be5invis/Sarasa-Gothic/).
 
@@ -239,7 +255,7 @@ The second font is the fallback for Chinese characters. To use Noto instead, set
 </details>
 
 <details>
-<summary>Ctrl+backtick for the floating terminal</summary>
+<summary>⌨️ Ctrl+backtick for the floating terminal</summary>
 
 Map `Ctrl+backtick` to its extended key sequence in Windows Terminal. Merge these entries into the existing `actions` and `keybindings` arrays in `settings.json`:
 
@@ -267,7 +283,9 @@ Windows Terminal's [sendInput action](https://learn.microsoft.com/en-us/windows/
 
 </details>
 
-## Contributing
+<a name="contributing"></a>
+
+## 🤝 Contributing
 
 Report issues through [GitHub Issues](https://github.com/ZhiWei-Ou/termConf/issues), including your OS, terminal, tmux version, and steps to reproduce. Add a screenshot or recording for visual problems.
 
@@ -281,6 +299,8 @@ git diff --check
 
 Manually verify affected shortcuts, status cards, or shell behavior on the platform you changed. Keep personal settings in `~/.workrc/rc.local`.
 
-## License
+<a name="license"></a>
+
+## 📄 License
 
 [MIT](LICENSE). The bundled [Oh my tmux!](https://github.com/gpakosz/.tmux) configuration retains its upstream MIT/WTFPL notices.
