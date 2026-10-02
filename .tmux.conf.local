@@ -494,6 +494,10 @@ run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _bind_status_clicks"
 %endif
 
 # Toggle floating window
+%if #{>=:#{version},3.2}
+# Forward extended Ctrl combinations to the nested floating tmux client.
+set -s extended-keys on
+%endif
 bind-key -n 'C-`' if-shell -F '#{==:#{session_name},popup}' \
   'detach-client' \
   'display-popup -E -b rounded -S "fg=#ff9b72,bg=default" -w 80% -h 80% -d "#{pane_current_path}" "tmux -T extkeys -f ~/.tmux.conf new-session -A -s popup"'

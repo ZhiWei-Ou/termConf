@@ -86,6 +86,39 @@ and update when the directory or active pane changes. For example,
 Manually renamed windows keep their custom names. Naming uses tmux's built-in
 format without launching a shell.
 
+## tmux floating terminal in Windows Terminal / WSL
+
+`Ctrl+backtick` opens and closes the floating terminal. tmux 3.2+ enables
+extended-key forwarding so the nested client can receive the closing shortcut.
+
+In Windows Terminal, explicitly map the shortcut to its extended key sequence.
+Merge these entries into the existing `actions` and `keybindings` arrays in
+`settings.json`:
+
+```json
+{
+  "actions": [
+    {
+      "id": "User.TmuxCtrlBacktick",
+      "command": {
+        "action": "sendInput",
+        "input": "\u001b[27;5;96~"
+      }
+    }
+  ],
+  "keybindings": [
+    {
+      "id": "User.TmuxCtrlBacktick",
+      "keys": "ctrl+`"
+    }
+  ]
+}
+```
+
+Windows Terminal's [sendInput action](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/actions#send-input)
+sends the escape sequence to WSL. Keep existing actions and keybindings when
+adding this mapping. Reload tmux with `tmux source-file ~/.tmux.conf`.
+
 ## tmux network speed
 
 The status bar shows download (`↓`) and upload (`↑`) rates for the default
