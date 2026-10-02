@@ -502,10 +502,11 @@ bind-key -n 'C-`' if-shell -F '#{==:#{session_name},popup}' \
   'detach-client' \
   'display-popup -E -b rounded -S "fg=#ff9b72,bg=default" -w 80% -h 80% -d "#{pane_current_path}" "tmux -T extkeys -f ~/.tmux.conf new-session -A -s popup"'
 
-# Keep the built-in clock on lowercase t.
-bind-key t clock-mode
-
-# A quiet night sky. Any key closes the overlay without reaching the active pane.
+# Aquarium in the current pane; night sky in a terminal-wide popup.
+%if #{>=:#{version},3.3}
+bind-key t run-shell -b \
+  "cut -c3- \"\$TMUX_CONF_LOCAL\" | sh -s _aquarium_pane '#{pane_id}'"
+%endif
 %if #{>=:#{version},3.2}
 bind-key T display-popup -E -B -w 100% -h 100% \
   "cut -c3- \"\$TMUX_CONF_LOCAL\" | sh -s _screensaver"
@@ -574,9 +575,71 @@ tmux_conf_uninstall_plugins_on_reload=true
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
 #
+# _aquarium_pane() {
+#   saver_original="$1"
+#   if [ -n "$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-option -pqv -t "$saver_original" @term_conf_aquarium_original)" ]; then
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} send-keys -t "$saver_original" Escape
+#     return
+#   fi
+#   saver_size=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} display-message -p -t "$saver_original" '#{pane_width} #{pane_height}') || return
+#   saver_path=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} display-message -p -t "$saver_original" '#{pane_current_path}') || return
+#   saver_remain=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-option -Apqv -t "$saver_original" remain-on-exit) || return
+#   set -- $saver_size
+#   saver_width="$1"
+#   saver_height="$2"
+#   saver_session="_term-conf-aquarium-${saver_original#%}"
+#   saver_pane=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} new-session -d -s "$saver_session" -c "$saver_path" -x "$saver_width" -y "$saver_height" -P -F '#{pane_id}' 'sleep 86400' \; set-option -t "$saver_session" destroy-unattached off) || return
+#
+#   # The original program stays alive in an unattached session of the same size.
+#   # Keep the temporary slot until its process exits, then restore the original.
+#   if ! "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} \
+#     set-option -t "$saver_session" status off \; \
+#     set-option -w -t "$saver_session:" window-size manual \; \
+#     resize-window -t "$saver_session:" -x "$saver_width" -y "$saver_height" \; \
+#     set-option -w -t "$saver_session:" remain-on-exit "$saver_remain" \; \
+#     set-option -p -t "$saver_pane" remain-on-exit on \; \
+#     set-option -p -t "$saver_pane" remain-on-exit-format '' \; \
+#     set-option -p -t "$saver_pane" synchronize-panes off \; \
+#     set-option -p -t "$saver_pane" @term_conf_aquarium_original "$saver_original"; then
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} kill-session -t "$saver_session"
+#     return 1
+#   fi
+#   if ! "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} swap-pane -dZ -s "$saver_pane" -t "$saver_original"; then
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} kill-session -t "$saver_session"
+#     return 1
+#   fi
+#   if ! "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} respawn-pane -k -t "$saver_pane" "cut -c3- \"\$TMUX_CONF_LOCAL\" | sh -s _screensaver aquarium"; then
+#     _aquarium_restore "$saver_original" "$saver_pane" "$saver_session"
+#     return 1
+#   fi
+#   # Wait for closed pane terminals; an exited OS process may still be a zombie.
+#   perl -e '
+#     my ($original, $scene, @tmux) = @ARGV;
+#     while (1) {
+#       open my $panes, "-|", @tmux, "list-panes", "-a", "-F", "#{pane_id} #{pane_dead}" or die "Cannot monitor panes\n";
+#       my %alive;
+#       while (<$panes>) { $alive{$1} = 1 if /^(%\d+) 0$/ }
+#       close $panes;
+#       last unless $alive{$original} && $alive{$scene};
+#       select undef, undef, undef, 0.1;
+#     }
+#   ' "$saver_original" "$saver_pane" "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"}
+#   _aquarium_restore "$saver_original" "$saver_pane" "$saver_session"
+# }
+#
+# _aquarium_restore() {
+#   if "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-option -Apv -t "$1" remain-on-exit >/dev/null 2>&1; then
+#     # The command sequence stops if swapping fails, preserving the original.
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} swap-pane -dZ -s "$1" -t "$2" \; kill-session -t "$3"
+#   else
+#     # The original process already exited and tmux removed its pane.
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} kill-pane -t "$2"
+#   fi
+# }
+#
 # _screensaver() {
-#   # The helper script arrives on stdin; read keys from the popup PTY instead.
-#   perl -MIO::Select -MTime::HiRes=time -e '
+#   # The helper script arrives on stdin; read keys from the scene PTY instead.
+#   perl -MIO::Select -MTime::HiRes=time -MList::Util=min,max -e '
 #     use strict;
 #     use warnings;
 #     $| = 1;
@@ -590,8 +653,10 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       }
 #     }
 #     system("stty", "raw", "-echo") == 0 or die "Cannot prepare terminal\n";
-#     print "\e[?1049h\e[?25l\e[?7l\e[48;2;12;18;27m\e[2J";
-#     my ($rows, $cols, @stars, %previous);
+#     print "\e[?1049h\e[?25l\e[?7l";
+#     my $aquarium = @ARGV && $ARGV[0] eq "aquarium";
+#     my ($rows, $cols, @background, @stars, %previous);
+#     my (@fish, @plants, @bubbles, @dust, @rocks);
 #     my ($running, $resized) = (1, 1);
 #     $SIG{WINCH} = sub { $resized = 1 };
 #     $SIG{$_} = sub { $running = 0 } for qw(HUP INT TERM);
@@ -599,9 +664,12 @@ tmux_conf_uninstall_plugins_on_reload=true
 #     my @palette = (
 #       "\e[38;2;56;70;88m", "\e[38;2;109;130;151m",
 #       "\e[38;2;216;208;200m", "\e[38;2;255;155;114m",
-#       "\e[38;2;147;102;83m"
+#       "\e[38;2;147;102;83m", "\e[38;2;45;83;70m",
+#       "\e[38;2;88;132;105m", "\e[38;2;47;63;66m",
+#       "\e[38;2;214;169;127m", "\e[38;2;21;42;53m"
 #     );
 #     my $started = time;
+#     my $last_tick = $started;
 #     my $next_meteor = 2 + rand(3);
 #     my @meteor;
 #
@@ -614,26 +682,14 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       }
 #     }
 #
-#     while ($running) {
-#       my $tick = time;
-#       if ($resized) {
-#         ($rows, $cols) = split /\s+/, qx(stty size);
-#         last unless $rows && $cols;
-#         @stars = map { [rand(), rand(), rand(6.28), 0.4 + rand(0.7)] }
-#           1 .. int($rows * $cols / 65);
-#         %previous = ();
-#         @meteor = ();
-#         print "\e[2J";
-#         $resized = 0;
-#       }
-#       my $elapsed = $tick - $started;
-#       my %frame;
+#     sub draw_night {
+#       my ($frame, $elapsed) = @_;
 #       for my $star (@stars) {
 #         my ($x, $y, $phase, $speed) = @$star;
 #         my $glow = (1 + sin($elapsed * $speed + $phase)) / 2;
 #         my $colour = $glow > 0.92 ? 2 : $glow > 0.55 ? 1 : 0;
 #         my $glyph = $glow > 0.97 ? "+" : $glow > 0.85 ? "*" : ".";
-#         put(\%frame, int($x * $cols), int($y * ($rows - 3)), $glyph, $colour);
+#         put($frame, int($x * $cols), int($y * ($rows - 3)), $glyph, $colour);
 #       }
 #
 #       if ($elapsed >= $next_meteor) {
@@ -643,7 +699,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       if (@meteor && $elapsed - $meteor[0] < 1.8) {
 #         my $age = $elapsed - $meteor[0];
 #         for my $tail (reverse 0 .. 5) {
-#           put(\%frame, int($meteor[1] - $age * 18 + $tail * 2),
+#           put($frame, int($meteor[1] - $age * 18 + $tail * 2),
 #             int($meteor[2] + $age * 6 - $tail),
 #             $tail == 0 ? "*" : ".", $tail < 2 ? 3 : $tail < 4 ? 4 : 0);
 #         }
@@ -652,14 +708,14 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       if ($cols >= 50 && $rows >= 18) {
 #         my @moon = (q{   .--.}, q{  / .-`}, q{ | (}, q{  \ `-.}, q{   `--`});
 #         for my $line (0 .. $#moon) {
-#           put(\%frame, $cols - 18, 3 + $line, $moon[$line], 2);
+#           put($frame, $cols - 18, 3 + $line, $moon[$line], 2);
 #         }
 #       }
 #       if ($cols >= 50 && $rows >= 18) {
 #         my $title = "a little night";
-#         put(\%frame, int(($cols - length $title) / 2), int($rows * 0.48), $title, 2);
+#         put($frame, int(($cols - length $title) / 2), int($rows * 0.48), $title, 2);
 #         my $subtitle = "let the world wait.";
-#         put(\%frame, int(($cols - length $subtitle) / 2), int($rows * 0.48) + 2, $subtitle, 0);
+#         put($frame, int(($cols - length $subtitle) / 2), int($rows * 0.48) + 2, $subtitle, 0);
 #       }
 #       if ($cols >= 18 && $rows >= 10) {
 #         my $x = $cols - 16;
@@ -667,11 +723,138 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         my @cat = (q{  /\_/\ }, int($elapsed / 2) % 2 ? q{ ( -_- ) } : q{ ( -.- ) },
 #           q{ /     \__}, q{(_______)_)});
 #         for my $line (0 .. $#cat) {
-#           put(\%frame, $x, $y + $line, $cat[$line], 3);
+#           put($frame, $x, $y + $line, $cat[$line], 3);
 #         }
 #         my $dream = int($elapsed / 1.2) % 4;
-#         put(\%frame, $x + 9 + $dream, $y - 1 - $dream, $dream == 2 ? "Z" : "z", 4)
+#         put($frame, $x + 9 + $dream, $y - 1 - $dream, $dream == 2 ? "Z" : "z", 4)
 #           if $dream < 3;
+#       }
+#     }
+#
+#     sub draw_aquarium {
+#       my ($frame, $elapsed, $delta) = @_;
+#       my $floor = max(0, $rows - 3);
+#       for my $speck (@dust) {
+#         put($frame, int(($speck->[0] * $cols + $elapsed * 0.3) % $cols),
+#           int($speck->[1] * max(1, $floor)), ".", 9);
+#       }
+#       if ($rows >= 10) {
+#         for (my $x = 0; $x < $cols; $x += 2) {
+#           put($frame, $x, 1 + int(sin($x * 0.12 + $elapsed * 0.5) > 0.7), "~", 9);
+#         }
+#       }
+#       for my $x (0 .. $cols - 1) {
+#         put($frame, $x, $floor, $x % 9 == 0 ? "." : "_", 7);
+#         put($frame, $x, $floor + 1, $x % 7 == 0 ? "." : " ", 9);
+#       }
+#       for my $rock (@rocks) {
+#         put($frame, $rock, $floor - 1, q{ .--. }, 7);
+#         put($frame, $rock, $floor, q{/____\ }, 7);
+#       }
+#
+#       for my $fish (@fish) {
+#         my $direction = $fish->{direction};
+#         my $chasing = grep {
+#           $_->{direction} == $direction && abs($_->{lane} - $fish->{lane}) < 5 &&
+#           ($_->{x} - $fish->{x}) * $direction > 8 &&
+#           ($_->{x} - $fish->{x}) * $direction < 22
+#         } @fish;
+#         $fish->{x} += $direction * $fish->{speed} * ($chasing ? 1.35 : 1) * $delta;
+#         my $edge = max(0, $cols - length $fish->{right});
+#         if ($fish->{x} < 0) {
+#           $fish->{x} = 0;
+#           $fish->{direction} = 1;
+#         } elsif ($fish->{x} > $edge) {
+#           $fish->{x} = $edge;
+#           $fish->{direction} = -1;
+#         }
+#         my $x = int($fish->{x});
+#         my $y = int($fish->{lane} + sin($elapsed * 0.6 + $fish->{phase}) * 0.8);
+#         my $right = $fish->{direction} > 0;
+#         if ($fish->{large}) {
+#           my $fin = $x + ($right ? 3 : 2);
+#           put($frame, $fin, $y - 1, int($elapsed * 2) % 2 ? q{ /\ } : q{ __ }, $fish->{colour});
+#           put($frame, $fin, $y + 1, q{ \/}, $fish->{colour});
+#         }
+#         put($frame, $x, $y, $right ? $fish->{right} : $fish->{left}, $fish->{colour});
+#       }
+#
+#       # Foreground plants conceal fish that swim through them.
+#       for my $plant (@plants) {
+#         for my $stem (-2, 0, 2) {
+#           my $height = max(1, $plant->{height} - abs($stem));
+#           for my $leaf (1 .. $height) {
+#             my $sway = int(sin($elapsed * 0.65 + $plant->{phase} + $leaf * 0.25) * $leaf / $height * 2);
+#             my $x = $plant->{x} + $stem + $sway;
+#             my $colour = $stem == 0 ? 6 : 5;
+#             my $branch = $leaf == $height ? q{\|/} : $leaf % 2 ? q{\|} : q{|/};
+#             put($frame, $x - ($leaf % 2 || $leaf == $height ? 1 : 0), $floor - $leaf, $branch, $colour);
+#           }
+#         }
+#       }
+#       for my $bubble (@bubbles) {
+#         $bubble->{y} -= $bubble->{speed} * $delta;
+#         if ($bubble->{y} < 2) {
+#           $bubble->{y} = $floor - 0.5;
+#           $bubble->{x} = rand($cols);
+#         }
+#         my $x = int($bubble->{x} + sin($elapsed * 0.8 + $bubble->{phase}) * 1.5);
+#         put($frame, $x, int($bubble->{y}), $bubble->{small} ? "." : "o", $bubble->{small} ? 0 : 1);
+#       }
+#     }
+#
+#     while ($running) {
+#       my $tick = time;
+#       my $delta = max(0, min(0.2, $tick - $last_tick));
+#       $last_tick = $tick;
+#       if ($resized) {
+#         ($rows, $cols) = split /\s+/, qx(stty size);
+#         last unless $rows && $cols;
+#         @background = map {
+#           my $depth = $_ / max(1, $rows - 1);
+#           $aquarium ? sprintf("\e[48;2;%d;%d;%dm", 8, 29 - 10 * $depth, 40 - 14 * $depth)
+#             : "\e[48;2;12;18;27m"
+#         } 0 .. $rows - 1;
+#         for my $y (0 .. $rows - 1) {
+#           print sprintf("\e[%d;1H", $y + 1), $background[$y], "\e[2K";
+#         }
+#         if ($aquarium) {
+#           @dust = map { [rand(), rand()] } 1 .. int($rows * $cols / 100);
+#           my $count = min(12, max(2, int($rows * $cols / 650) + 2));
+#           @fish = map {
+#             my $large = $cols >= 60 && $rows >= 18 && $_ % 3 == 0;
+#             my ($right, $left) = $cols < 4 ? (">", "<") : $cols < 30 || $_ % 3 == 1
+#               ? ("><>", "<><") : $large ? ("><(((o>", "<o)))><") : ("><((o>", "<o))><");
+#             { x => rand(max(1, $cols - length $right)), direction => rand() > 0.5 ? 1 : -1,
+#               lane => 2 + ($_ + 0.5) / $count * max(1, $rows - 7), speed => 3 + rand(4),
+#               phase => rand(6.28), right => $right, left => $left, large => $large,
+#               colour => $large ? 3 : $_ % 2 ? 8 : 4 }
+#           } 0 .. $count - 1;
+#           my $clusters = max(1, int($cols / 19));
+#           @plants = map {
+#             { x => int(($_ + 0.5) * $cols / $clusters),
+#               height => max(1, min($rows - 5, int($rows * (0.18 + rand(0.15))))), phase => rand(6.28) }
+#           } 0 .. $clusters - 1;
+#           @bubbles = map {
+#             { x => rand($cols), y => 2 + rand(max(1, $rows - 6)), speed => 0.7 + rand(1.1),
+#               phase => rand(6.28), small => $_ % 3 == 0 }
+#           } 1 .. max(1, int($cols / 12));
+#           @rocks = map { int(($_ + 0.3) * $cols / max(1, int($cols / 43))) }
+#             0 .. max(1, int($cols / 43)) - 1;
+#         } else {
+#           @stars = map { [rand(), rand(), rand(6.28), 0.4 + rand(0.7)] }
+#             1 .. int($rows * $cols / 65);
+#           @meteor = ();
+#         }
+#         %previous = ();
+#         $resized = 0;
+#       }
+#       my $elapsed = $tick - $started;
+#       my %frame;
+#       if ($aquarium) {
+#         draw_aquarium(\%frame, $elapsed, $delta);
+#       } else {
+#         draw_night(\%frame, $elapsed);
 #       }
 #       # Only redraw changed cells, keeping idle CPU use and terminal traffic low.
 #       my $output = "";
@@ -679,7 +862,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         my $value = $frame{$cell} // "0 ";
 #         next if exists $previous{$cell} && $previous{$cell} eq $value;
 #         $output .= sprintf("\e[%d;%dH", int($cell / $cols) + 1, $cell % $cols + 1)
-#           . $palette[substr($value, 0, 1)] . substr($value, 1);
+#           . $background[int($cell / $cols)] . $palette[substr($value, 0, 1)] . substr($value, 1);
 #       }
 #       print $output;
 #       %previous = %frame;
@@ -688,7 +871,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         last;
 #       }
 #     }
-#   ' </dev/tty
+#   ' "$@" </dev/tty
 # }
 #
 # _bind_status_clicks() {
