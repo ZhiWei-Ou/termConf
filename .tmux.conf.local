@@ -197,7 +197,7 @@ tmux_conf_theme_terminal_title="#h ❐ #S ● #I #W"
 tmux_conf_theme_window_status_fg="$tmux_conf_theme_colour_3"
 tmux_conf_theme_window_status_bg="default"
 tmux_conf_theme_window_status_attr="none"
-tmux_conf_theme_window_status_format=" #I #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,} "
+tmux_conf_theme_window_status_format=" #I  #{=/18/…:window_name}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,} "
 #tmux_conf_theme_window_status_format="#{circled_window_index} #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
 #tmux_conf_theme_window_status_format="#I #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,🔔,}#{?window_zoomed_flag,🔍,}"
 
@@ -214,7 +214,8 @@ tmux_conf_theme_window_status_format=" #I #W#{?#{||:#{window_bell_flag},#{window
 tmux_conf_theme_window_status_current_fg="$tmux_conf_theme_colour_4"
 tmux_conf_theme_window_status_current_bg="default"
 tmux_conf_theme_window_status_current_attr="bold"
-tmux_conf_theme_window_status_current_format=" ▸ #I #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,} "
+# Rounded tabs use the Powerline glyphs in the documented Nerd Font.
+tmux_conf_theme_window_status_current_format="#[fg=$tmux_conf_theme_colour_2,bg=default,nobold]#[fg=$tmux_conf_theme_colour_3,bg=$tmux_conf_theme_colour_2] #I  #[fg=$tmux_conf_theme_colour_7,bold]#{=/24/…:window_name}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,} #[fg=$tmux_conf_theme_colour_2,bg=default,nobold]"
 #tmux_conf_theme_window_status_current_format="#{circled_window_index} #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
 #tmux_conf_theme_window_status_current_format="#I #W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,🔔,}#{?window_zoomed_flag,🔍,}"
 
@@ -272,7 +273,8 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 tmux_conf_theme_status_left=""
-tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root}@#{hostname} "
+# Keep a compact clock capsule; show the date only on wide terminals.
+tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},120},%m-%d  ,}#[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold] "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -280,9 +282,9 @@ tmux_conf_theme_status_left_bg="default"
 tmux_conf_theme_status_left_attr="none"
 
 # status right style
-tmux_conf_theme_status_right_fg="$tmux_conf_theme_colour_16,$tmux_conf_theme_colour_16"
-tmux_conf_theme_status_right_bg="default,default"
-tmux_conf_theme_status_right_attr="none,bold"
+tmux_conf_theme_status_right_fg="$tmux_conf_theme_colour_3"
+tmux_conf_theme_status_right_bg="default"
+tmux_conf_theme_status_right_attr="none"
 
 # pairing indicator
 tmux_conf_theme_pairing="⚇"                 # U+2687
@@ -292,9 +294,9 @@ tmux_conf_theme_pairing_attr="none"
 
 # prefix indicator
 tmux_conf_theme_prefix="⌨"                  # U+2328
-tmux_conf_theme_prefix_fg="none"
+tmux_conf_theme_prefix_fg="$tmux_conf_theme_colour_4"
 tmux_conf_theme_prefix_bg="none"
-tmux_conf_theme_prefix_attr="none"
+tmux_conf_theme_prefix_attr="bold"
 
 # mouse indicator
 tmux_conf_theme_mouse="↗"                   # U+2197
@@ -310,9 +312,9 @@ tmux_conf_theme_root_attr="bold,blink"
 
 # synchronized indicator
 tmux_conf_theme_synchronized="⚏"            # U+268F
-tmux_conf_theme_synchronized_fg="none"
+tmux_conf_theme_synchronized_fg="$tmux_conf_theme_colour_5"
 tmux_conf_theme_synchronized_bg="none"
-tmux_conf_theme_synchronized_attr="none"
+tmux_conf_theme_synchronized_attr="bold"
 
 # battery bar symbols
 tmux_conf_battery_bar_symbol_full="◼"
@@ -430,7 +432,7 @@ set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{25
 # display a message after toggling mouse support
 bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?#{mouse},on,off}'
 
-# move status line to top
+# keep the status line at the bottom
 set -g status-position bottom
 
 # Toggle floating window
