@@ -61,6 +61,23 @@ source ~/.zshrc
 # Advanced
 We can create a `~/.workrc/rc.local` to export the environment variables for work.
 
+## Zsh completion directory
+
+`ZSH_COMPLETION_DIR` exports the resolved zsh-completions directory, which is
+added to `fpath` before completion initialization. It uses `ZSH_CUSTOM` when set,
+otherwise `$ZSH/custom`, with `~/.oh-my-zsh` as the fallback for `ZSH`.
+
+Redirect your command's Zsh completion output into an `_command` file there.
+For a command that supports `completion zsh`, for example:
+
+```sh
+mkdir -p "$ZSH_COMPLETION_DIR"
+your-command completion zsh > "$ZSH_COMPLETION_DIR/_your-command"
+```
+
+Use the completion-generation syntax supported by your command, then start a
+new Zsh session to load the new completion file.
+
 ## tmux network speed
 
 The status bar shows download (`↓`) and upload (`↑`) rates for the default

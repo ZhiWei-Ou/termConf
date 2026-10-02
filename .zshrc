@@ -11,7 +11,8 @@ plugins=( git extract zsh-syntax-highlighting)
 
 # CMake completion in this path
 # Reference: https://github.com/zsh-users/zsh-completions
-fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+export ZSH_COMPLETION_DIR="${ZSH_CUSTOM:-${ZSH:-$HOME/.oh-my-zsh}/custom}/plugins/zsh-completions/src"
+fpath+=("$ZSH_COMPLETION_DIR")
 autoload -U compinit && compinit
 
 # Enable On-My-Zsh
