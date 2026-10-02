@@ -61,6 +61,23 @@ source ~/.zshrc
 # Advanced
 We can create a `~/.workrc/rc.local` to export the environment variables for work.
 
+## tmux network speed
+
+The status bar shows download (`↓`) and upload (`↑`) rates for the default
+network interface. Units scale from B/s to KiB/s, MiB/s, and GiB/s. The bar
+refreshes every two seconds; slower system queries can delay network samples.
+Network speed is hidden below 80 columns, and the date below 120 columns.
+
+- Linux and WSL use `ip` from iproute2 and `/proc/net/dev`. In WSL, the rates
+  cover the WSL network interface rather than all Windows applications.
+- macOS uses the built-in `route` and `netstat` commands.
+- Windows with tmux under Cygwin/MSYS uses `powershell.exe` and the built-in
+  NetTCPIP/NetAdapter modules. PowerShell must be available on `PATH`.
+
+Sampling uses Perl, which is already required by Oh my tmux!. No tmux plugin
+is needed. Interface changes, counter resets, and unavailable statistics clear
+the network readout until a valid sample is available.
+
 # FAQ
 - This repo has the `zsh-syntax-highlighting` feature enabled by default.
 > We can install it by:

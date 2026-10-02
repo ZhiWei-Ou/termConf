@@ -9,6 +9,7 @@
 
 # -- bindings ------------------------------------------------------------------
 set -g status on
+set -g status-interval 2
 
 # preserve tmux stock bindings,
 # while adding bindings that don't conflict with these stock bindings
@@ -273,8 +274,8 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username_ssh}
 #tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
 tmux_conf_theme_status_left=""
-# Keep a compact clock capsule; show the date only on wide terminals.
-tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},120},%m-%d  ,}#[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold] "
+# Keep the clock visible; hide network speed and the date on narrow terminals.
+tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},#{network_speed},}#{?#{e|>=:#{client_width},120},%m-%d  ,}#[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold] "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -502,6 +503,91 @@ tmux_conf_uninstall_plugins_on_reload=true
 # EOF
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
+#
+# _network_snapshot() {
+#   case "$1" in
+#     Linux)
+#       interface=$(ip -o route show default 2>/dev/null | awk '{ for (i = 1; i < NF; i++) if ($i == "dev") { print $(i + 1); exit } }')
+#       if [ -z "$interface" ]; then
+#         interface=$(ip -6 -o route show default 2>/dev/null | awk '{ for (i = 1; i < NF; i++) if ($i == "dev") { print $(i + 1); exit } }')
+#       fi
+#       [ -n "$interface" ] || return 1
+#       counters=$(awk -v interface="$interface" '{
+#         sub(/:$/, "", $1)
+#         if ($1 == interface) { printf "%s %.0f %.0f", interface, $2, $10; exit }
+#       }' /proc/net/dev)
+#       ;;
+#     Darwin)
+#       interface=$(route -n get default 2>/dev/null | awk '/interface:/ { print $2; exit }')
+#       if [ -z "$interface" ]; then
+#         interface=$(route -n get -inet6 default 2>/dev/null | awk '/interface:/ { print $2; exit }')
+#       fi
+#       [ -n "$interface" ] || return 1
+#       counters=$(netstat -ibn -I "$interface" | awk -v interface="$interface" '
+#         NR == 1 {
+#           columns = NF
+#           for (i = 1; i <= NF; i++) {
+#             if ($i == "Ibytes") rx = i
+#             if ($i == "Obytes") tx = i
+#           }
+#           next
+#         }
+#         $1 == interface && $3 ~ /^<Link/ && rx && tx {
+#           offset = columns - NF
+#           if (offset < 0 || offset > 1) exit
+#           received = $(rx - offset); sent = $(tx - offset)
+#           if (received ~ /^[0-9]+$/ && sent ~ /^[0-9]+$/)
+#             printf "%s %s %s", interface, received, sent
+#           exit
+#         }')
+#       ;;
+#     CYGWIN*|MSYS*|MINGW*)
+#       counters=$(powershell.exe -NoLogo -NoProfile -NonInteractive -Command '
+#         $ErrorActionPreference = "Stop"
+#         try {
+#           $route = Get-NetRoute -DestinationPrefix "0.0.0.0/0","::/0" -ErrorAction SilentlyContinue |
+#             Sort-Object { $_.RouteMetric + $_.InterfaceMetric } | Select-Object -First 1
+#           if (-not $route) { exit 1 }
+#           $stats = Get-NetAdapterStatistics -Name $route.InterfaceAlias
+#           "{0} {1} {2}" -f $route.InterfaceIndex, $stats.ReceivedBytes, $stats.SentBytes
+#         } catch { exit 1 }
+#       ' | tr -d '\r')
+#       ;;
+#     *) return 1 ;;
+#   esac
+#   [ -n "$counters" ] || return 1
+#   timestamp=$(perl -MTime::HiRes=time -e 'printf "%.6f", time')
+#   printf '%s %s\n' "$counters" "$timestamp"
+# }
+#
+# # usage: #{network_speed} (download/upload on the default network interface)
+# network_speed() {
+#   platform=$(uname -s)
+#   first=$(_network_snapshot "$platform" 2>/dev/null) || { printf '\n'; return; }
+#   sleep 1
+#   second=$(_network_snapshot "$platform" 2>/dev/null) || { printf '\n'; return; }
+#   printf '%s\n%s\n' "$first" "$second" | perl -e '
+#     use utf8;
+#     binmode STDOUT, ":utf8";
+#     my @first = split " ", <STDIN>;
+#     my @second = split " ", <STDIN>;
+#     my $elapsed = $second[3] - $first[3];
+#     if ($first[0] ne $second[0] || $elapsed <= 0 ||
+#         $second[1] < $first[1] || $second[2] < $first[2]) {
+#       print "\n";
+#       exit;
+#     }
+#     sub rate {
+#       my ($bytes) = @_;
+#       my @units = ("B/s", "KiB/s", "MiB/s", "GiB/s");
+#       my $unit = 0;
+#       while ($bytes >= 1024 && $unit < $#units) { $bytes /= 1024; $unit++; }
+#       return sprintf($unit ? "%.1f%s" : "%.0f%s", $bytes, $units[$unit]);
+#     }
+#     printf "↓ %s ↑ %s  \n", rate(($second[1] - $first[1]) / $elapsed),
+#       rate(($second[2] - $first[2]) / $elapsed);
+#   '
+# }
 #
 # # usage: #{weather}
 # weather() {                                         # see https://github.com/chubin/wttr.in#one-line-output
