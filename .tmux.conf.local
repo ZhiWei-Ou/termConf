@@ -560,8 +560,8 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         if ($code == 0) { push @style, "fg=#d8d0c8", "bg=terminal", "none"; }
 #         elsif ($code == 1) { push @style, "bold"; }
 #         elsif ($code == 4) { push @style, "underscore"; }
-#         elsif ($code == 38 && @codes >= 4 && shift(@codes) == 2) {
-#           push @style, sprintf("fg=#%02x%02x%02x", splice(@codes, 0, 3));
+#         elsif (($code == 38 || $code == 48) && @codes >= 4 && shift(@codes) == 2) {
+#           push @style, sprintf("%s=#%02x%02x%02x", $code == 38 ? "fg" : "bg", splice(@codes, 0, 3));
 #         }
 #       }
 #       return "#[" . join(",", @style) . "]";
@@ -613,7 +613,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       for my $column (0 .. 6) {
 #         my $day = $week * 7 + $column - $offset + 1;
 #         if ($day < 1 || $day > $days[$month]) { print "   "; next; }
-#         if ($day == $today) { print "\e[1;4;38;2;255;155;114m"; }
+#         if ($day == $today) { print "\e[1;38;2;8;8;8;48;2;255;155;114m"; }
 #         elsif ($column >= 5) { print "\e[38;2;138;129;120m"; }
 #         printf "%2d\e[0m ", $day;
 #       }

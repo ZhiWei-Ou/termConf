@@ -89,8 +89,8 @@ the network readout until a valid sample is available.
 ## tmux calendar
 
 With tmux 3.4 or newer and mouse support enabled, click the status bar date to
-open a calendar above it. Weeks start on Monday, and today is highlighted in
-orange with an underline. Click outside the card or its heading, or press
+open a calendar above it. Weeks start on Monday, and today has a warm orange
+background with bold dark text. Click outside the card or its heading, or press
 `Esc` or `q`, to close it. The date appears at
 120 columns or wider. The popup uses the terminal default background, so it
 follows the terminal emulator's transparency settings. tmux does not provide
