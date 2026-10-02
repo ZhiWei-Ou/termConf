@@ -104,9 +104,9 @@ required. Older tmux versions keep the date as plain text.
 ## tmux time zones
 
 Click the clock label to view the local time, UTC, Beijing, Tokyo, London,
-New York, and Los Angeles. The popup shows each date and UTC offset at the
-moment it opens, including daylight saving time. Click outside the card or
-its heading, or press `Esc` or `q`, to close it.
+New York, and Los Angeles. The popup shows dates and UTC offsets, including
+daylight saving time, from the latest background refresh. Click outside the
+card or its heading, or press `Esc` or `q`, to close it.
 Dates use `MM-DD` in terminals narrower than 44 columns.
 It uses the same terminal background as the calendar and requires tmux 3.4+.
 Linux/WSL and macOS use Perl and `/usr/share/zoneinfo` (install `tzdata` if
