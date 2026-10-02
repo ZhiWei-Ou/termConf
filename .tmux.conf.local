@@ -278,7 +278,9 @@ tmux_conf_theme_status_left=""
 tmux_conf_theme_status_network="#{network_speed}  "
 tmux_conf_theme_status_date="%m-%d"
 tmux_conf_theme_status_time=" #[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold]"
+tmux_conf_theme_status_clock_menus=""
 %if #{>=:#{version},3.4}
+tmux_conf_theme_status_clock_menus="#{clock_menus #{q:session_id}}"
 # Use spaces between styles inside the width conditional. Mouse ranges overlap
 # one cell, so isolate the leading gap and switch ranges before the final cap.
 tmux_conf_theme_status_network="#{?#{network_speed},#[norange] #[range=user|network]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] #{network_speed} #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]#[fg=$tmux_conf_theme_colour_3 bg=default],}"
@@ -286,7 +288,7 @@ tmux_conf_theme_status_date="#[norange] #[range=user|calendar]#[fg=$tmux_conf_th
 tmux_conf_theme_status_time="#[norange] #[range=user|timezones]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] %R #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]"
 %endif
 # Keep the clock visible; hide network speed and the date on narrow terminals.
-tmux_conf_theme_status_right=" #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},$tmux_conf_theme_status_network,}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
+tmux_conf_theme_status_right="$tmux_conf_theme_status_clock_menus #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},$tmux_conf_theme_status_network,}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -448,20 +450,33 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 set -g status-position bottom
 
 # Click the status labels for network details, a calendar, or world times.
-# Native menus can close on outside clicks. Source the generated command in the
-# original mouse event so tmux 3.4 keeps mouse handling enabled for the card.
+# Prepare clock menus in the background; cached clicks only execute tmux commands.
+# Both cached commands and generated network commands retain the mouse event.
 %if #{>=:#{version},3.4}
+run-shell -b "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _refresh_clock_menus"
 bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' {
-  run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _status_menu _calendar '#{socket_path}.status-menu.#{client_pid}'"
-  source-file -F '#{socket_path}.status-menu.#{client_pid}'
+  if-shell -F '#{@term_conf_calendar_menu}' {
+    run-shell -C '#{@term_conf_calendar_menu}'
+  } {
+    run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _status_menu _calendar '#{socket_path}.status-menu.#{client_pid}'"
+    source-file -F '#{socket_path}.status-menu.#{client_pid}'
+  }
 } {
   if-shell -F '#{==:#{mouse_status_range},timezones}' {
-    if-shell -F '#{e|<:#{client_width},44}' {
-      run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=1 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
+    if-shell -F '#{&&:#{@term_conf_timezones_menu},#{@term_conf_timezones_compact_menu}}' {
+      if-shell -F '#{e|<:#{client_width},44}' {
+        run-shell -C '#{@term_conf_timezones_compact_menu}'
+      } {
+        run-shell -C '#{@term_conf_timezones_menu}'
+      }
     } {
-      run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=0 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
+      if-shell -F '#{e|<:#{client_width},44}' {
+        run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=1 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
+      } {
+        run-shell "cut -c3- '$TMUX_CONF_LOCAL' | TMUX_TIME_COMPACT=0 sh -s _status_menu _timezones '#{socket_path}.status-menu.#{client_pid}'"
+      }
+      source-file -F '#{socket_path}.status-menu.#{client_pid}'
     }
-    source-file -F '#{socket_path}.status-menu.#{client_pid}'
   } {
     if-shell -F '#{==:#{mouse_status_range},network}' {
       run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _status_menu _network_details '#{socket_path}.status-menu.#{client_pid}'"
@@ -471,6 +486,7 @@ bind-key -n MouseDown1Status if-shell -F '#{==:#{mouse_status_range},calendar}' 
     }
   }
 }
+run-shell "cut -c3- '$TMUX_CONF_LOCAL' | sh -s _bind_status_clicks"
 %endif
 
 # Toggle floating window
@@ -541,6 +557,45 @@ tmux_conf_uninstall_plugins_on_reload=true
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
 #
+# _bind_status_clicks() {
+#   # Rapid presses have distinct keys before tmux resolves a double click.
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} list-keys -T root MouseDown1Status |
+#     sed -e h -e 's/ MouseDown1Status / SecondClick1Status /' -e p -e g -e 's/ MouseDown1Status / TripleClick1Status /' |
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} source-file -
+# }
+#
+# # An empty status variable refreshes session-local clock menus asynchronously.
+# clock_menus() {
+#   printf '\n'
+#   _clock_menus "$@"
+# }
+#
+# _clock_menus() {
+#   clock_session="$1"
+#   clock_tz=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-environment -t "$clock_session" TZ 2>/dev/null)
+#   case "$clock_tz" in
+#     TZ=*) TZ=${clock_tz#TZ=}; export TZ ;;
+#     -TZ) unset TZ ;;
+#   esac
+#   minute=$(date +%Y%m%d%H%M%z)
+#   if [ "$2" != force ] && [ "$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-option -qv -t "$clock_session" @term_conf_clock_minute)" = "$minute" ]; then
+#     return
+#   fi
+#   menu=$(_status_menu _calendar) || return 1
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -q -t "$clock_session" @term_conf_calendar_menu "$menu" || return 1
+#   menu=$(TMUX_TIME_COMPACT=0 _status_menu _timezones) || return 1
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -q -t "$clock_session" @term_conf_timezones_menu "$menu" || return 1
+#   menu=$(TMUX_TIME_COMPACT=1 _status_menu _timezones) || return 1
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -q -t "$clock_session" @term_conf_timezones_compact_menu "$menu" || return 1
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -q -t "$clock_session" @term_conf_clock_minute "$minute"
+# }
+#
+# _refresh_clock_menus() {
+#   "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} list-sessions -F "#{session_id}" | while IFS= read -r session; do
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} run-shell -b -t "$session" "cut -c3- \"\$TMUX_CONF_LOCAL\" | sh -s _clock_menus '$session' force" || exit 1
+#   done
+# }
+#
 # _status_menu() {
 #   "$1" | perl -MEncode=encode -MFcntl=O_WRONLY,O_CREAT,O_TRUNC -0777 -e '
 #     use utf8;
@@ -585,12 +640,16 @@ tmux_conf_uninstall_plugins_on_reload=true
 #       $text =~ s/$q/$q\\$q$q/g;
 #       return $q . $text . $q;
 #     }
+#     my $command = join(" ", map { quote($_) } @menu) . "\n";
+#     if (!$path) {
+#       print encode("UTF-8", $command);
+#       exit;
+#     }
 #     sysopen(my $file, $path, O_WRONLY | O_CREAT | O_TRUNC, 0600) or die "$path: $!\n";
 #     # Remove the private command file once source-file has parsed it.
 #     my $remove = "rm -f -- " . quote($path);
 #     $remove =~ s/#/##/g;
-#     print $file encode("UTF-8", "run-shell " . quote($remove) . "\n" .
-#       join(" ", map { quote($_) } @menu) . "\n");
+#     print $file encode("UTF-8", "run-shell " . quote($remove) . "\n" . $command);
 #     close $file or die "$path: $!\n";
 #   ' "$2"
 # }

@@ -113,6 +113,13 @@ Linux/WSL and macOS use Perl and `/usr/share/zoneinfo` (install `tzdata` if
 missing). Windows under Cygwin/MSYS uses the existing `powershell.exe`
 dependency and Windows time zone rules for the city clocks.
 
+Calendar and time zone menus are prepared in the background for each session
+and refreshed when the minute changes. Cached clicks use tmux commands without
+starting a shell or writing a temporary file. Minute and day changes appear
+after the next status refresh. During initial preparation, clicks can still
+generate a menu directly. Repeated status clicks also respond immediately,
+including tmux's second-click and triple-click events.
+
 # FAQ
 - This repo has the `zsh-syntax-highlighting` feature enabled by default.
 > We can install it by:
