@@ -740,14 +740,24 @@ tmux_conf_uninstall_plugins_on_reload=true
 #
 # # Share the same interface selection, sampling, and units between both views.
 # _network_sample() {
-#   first=$(_network_snapshot "$1" 2>/dev/null) || return 1
-#   sleep 1
+#   max_elapsed=0
+#   if [ "$2" = recent ]; then
+#     # Reuse the status bar baseline so a click only needs one fresh snapshot.
+#     first=$("${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} show-option -gqv @term_conf_network_baseline) || return 1
+#     [ -n "$first" ] || return 1
+#     max_elapsed=10
+#   else
+#     first=$(_network_snapshot "$1" 2>/dev/null) || return 1
+#     sleep 1
+#   fi
 #   second=$(_network_snapshot "$1" 2>/dev/null) || return 1
-#   printf '%s\n%s\n' "$first" "$second" | perl -e '
+#   sample=$(printf '%s\n%s\n' "$first" "$second" | perl -e '
+#     my $max_elapsed = shift;
 #     my @first = split " ", <STDIN>;
 #     my @second = split " ", <STDIN>;
 #     my $elapsed = $second[3] - $first[3];
 #     if ($first[0] ne $second[0] || $elapsed <= 0 ||
+#         ($max_elapsed && $elapsed > $max_elapsed) ||
 #         $second[1] < $first[1] || $second[2] < $first[2]) {
 #       exit 1;
 #     }
@@ -762,12 +772,20 @@ tmux_conf_uninstall_plugins_on_reload=true
 #     print join("\t", $second[0], bytes(($second[1] - $first[1]) / $elapsed, "/s"),
 #       bytes(($second[2] - $first[2]) / $elapsed, "/s"),
 #       bytes($second[1], ""), bytes($second[2], ""), $second[3]), "\n";
-#   '
+#   ' "$max_elapsed") || return 1
+#   if [ "$2" != recent ]; then
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -gq @term_conf_network_baseline "$first" || return 1
+#   fi
+#   printf '%s\n' "$sample"
 # }
 #
 # # usage: #{network_speed} (download/upload on the default network interface)
 # network_speed() {
-#   sample=$(_network_sample "$(uname -s)") || { printf '\n'; return; }
+#   sample=$(_network_sample "$(uname -s)") || {
+#     "${TMUX_PROGRAM:-tmux}" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} set-option -guq @term_conf_network_baseline
+#     printf '\n'
+#     return
+#   }
 #   printf '%s\n' "$sample" | perl -e '
 #     use utf8;
 #     binmode STDOUT, ":utf8";
@@ -779,7 +797,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 # _network_details() {
 #   printf '\033[?25l\n  \033[1;38;2;255;155;114mNetwork\033[0m\n\n  Sampling…\n'
 #   platform=$(uname -s)
-#   sample=$(_network_sample "$platform") || sample=
+#   sample=$(_network_sample "$platform" recent) || sample=
 #   {
 #     printf '%s\n' "$sample"
 #     if [ -n "$sample" ]; then

@@ -71,10 +71,13 @@ Network speed is hidden below 80 columns, and the date below 120 columns.
 With tmux 3.4+ and mouse support enabled, click either rate to open network
 details. The popup samples the default interface when opened and shows its
 name, first available IPv4 and non-link-local IPv6 address, download/upload
-rates, and total received/sent bytes. Totals come from the system interface
-counters and may reset when the interface or system restarts. Click outside
-the card or its heading, or press `Esc` or `q`, to close it. Its background
-follows the terminal, like the calendar popup.
+rates, and total received/sent bytes. It reuses the status bar's recent sampling
+baseline and reads fresh counters, so opening it does not wait for another
+one-second sampling interval. Rates remain unavailable until a valid status
+sample is ready after an interface change or counter reset. Totals come from
+the system interface counters and may reset when the interface or system
+restarts. Click outside the card or its heading, or press `Esc` or `q`, to
+close it. Its background follows the terminal, like the calendar popup.
 
 - Linux and WSL use `ip` from iproute2 and `/proc/net/dev`. In WSL, the rates
   cover the WSL network interface rather than all Windows applications.
