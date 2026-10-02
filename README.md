@@ -1,29 +1,224 @@
-# termConf
-the tmux config and the zsh config for terminal
+<h1 align="center">termConf</h1>
 
-# Download
-```bash
-git clone -b main git@github.com:ZhiWei-Ou/termConf.git \
-    ~/.config/term_conf
+<p align="center">
+  Zsh and tmux dotfiles with a warm orange theme and a clickable status bar.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff9b72?style=flat-square" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="https://github.com/ZhiWei-Ou/termConf/issues">Issues</a>
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/07a30c92-c975-4a79-b33a-407dc09bb273" alt="termConf terminal preview with Zsh and the tmux status bar" width="960">
+</p>
+
+## Features
+
+- **Matching Zsh and tmux colors** — warm orange accents, muted labels, and terminal-default backgrounds.
+- **Directory-based window names** — labels follow the active pane's directory basename; home appears as `~`. The current window has a rounded tab.
+- **Network monitoring** — download and upload rates in the status bar; click to see the interface, IP addresses, and traffic totals.
+- **Calendar and world clocks** — click the date or time to open a card, then click outside to close it.
+- **Floating terminal** — toggle a reusable terminal with `Ctrl+backtick`.
+- **Shell conveniences** — Git status in the prompt, syntax highlighting, extra completions, and a separate file for personal settings.
+
+## Quick Start
+
+Use Zsh and tmux on Linux, macOS, or WSL. On Windows, the setup entry point installs into your default WSL distribution.
+
+### Prerequisites
+
+Install these before running setup:
+
+- [Zsh](https://www.zsh.org/), Git, Perl, and [tmux](https://github.com/tmux/tmux/wiki/Installing). Use **tmux 3.4+** for clickable status cards.
+- [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh#basic-installation), installed at `~/.oh-my-zsh`.
+- A [Nerd Font](https://www.nerdfonts.com/font-downloads), such as `JetBrainsMono Nerd Font Mono`, selected in your terminal for the rounded tab glyphs.
+- On Linux/WSL: `iproute2` for network information and `tzdata` for world clocks.
+
+Install the two external Zsh plugins below if they are not already present. `git` and `extract` are bundled with Oh My Zsh; syntax highlighting is enabled by this configuration, and extra completions are loaded through `fpath`.
+
+```sh
+git clone https://github.com/zsh-users/zsh-completions.git \
+    "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-completions"
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
+    "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
 ```
 
-# Dependencies
-Requirements:
-- [tmux](https://tmuxcheatsheet.com/how-to-install-tmux/) 
-- [on-my-zsh](https://ohmyz.sh/#install)
-- [CMake-Completion](https://github.com/zsh-users/zsh-completions)
+### Install
 
-## Windows Terminal font
+Run these commands from a Zsh terminal:
 
-Choose and install one of these Chinese fallback fonts:
+```sh
+git clone --branch main https://github.com/ZhiWei-Ou/termConf.git \
+    "$HOME/.config/term_conf"
+cd "$HOME/.config/term_conf"
+./setup.sh
+source ~/.zshrc
+```
 
-- `Noto Sans Mono CJK SC`: download the release ZIP from
-  [noto-cjk](https://github.com/notofonts/noto-cjk/).
-- `Sarasa Mono SC`: download it from
-  [Sarasa Gothic](https://github.com/be5invis/Sarasa-Gothic/).
+Setup links `.zshrc`, `.tmux.conf`, and `.tmux.conf.local` into your home directory, creates `ZSH_COMPLETION_DIR`, and initializes `~/.workrc/rc.local` with comments.
 
-Open the Windows Terminal `settings.json` file and configure the default font.
-For example, to use `Sarasa Mono SC`:
+Existing files or different symlinks are backed up beside their original paths. Repeated runs keep links created by setup and preserve existing `rc.local` content. Directories at configuration-file paths are not replaced. Setup does not install dependencies or execute shell startup files.
+
+Start a tmux session from a terminal where Zsh is configured as the default shell:
+
+```sh
+tmux new-session -s dev
+```
+
+You should see directory-based window labels and the clock at the bottom. At **120 columns or wider**, all three status cards can be shown when network statistics are available.
+
+## Usage
+
+### Status cards
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/03535481-89c6-41b7-a3cc-48e4d9bf99e2" alt="Animated demonstration of termConf terminal interactions" width="960">
+</p>
+
+Mouse support is enabled by default. With tmux 3.4+, click a status label to open its card:
+
+| Label | What it shows |
+| --- | --- |
+| Download / upload | Default network interface, IPv4/IPv6 addresses, current rates, and received/sent totals. |
+| Date | Current month, Monday-first weeks, and today's date highlighted in orange. |
+| Time | Local time, UTC, Beijing, Tokyo, London, New York, and Los Angeles, with dates and UTC offsets. |
+
+Click outside a card or its heading, or press `Esc` or `q`, to close it.
+
+The status bar refreshes every two seconds. Network rates appear at **80 columns or wider**, and the date at **120 columns or wider**; the clock remains visible. Calendar and world-clock cards refresh in the background when the minute changes, with updates appearing after the next status refresh. World clocks account for daylight saving time and use shorter dates below 44 columns.
+
+Network details read fresh counters when opened and use the status bar's recent sample to calculate rates. The card is a snapshot. Rates may be unavailable briefly after an interface change or counter reset; cumulative totals come from system counters and can reset with the interface or system.
+
+### Key bindings
+
+The prefix is **`Ctrl+b`**: press it, release it, then press the next key.
+
+| Keys | Action |
+| --- | --- |
+| `Prefix` then `c` | Create a window. |
+| `Prefix` then `1`–`9` | Switch to a window by number. |
+| `Prefix` then `-` / `_` | Split into top/bottom or left/right panes. |
+| `Prefix` then `h` / `j` / `k` / `l` | Move between panes. |
+| `Prefix` then `m` | Toggle mouse support. |
+| `Prefix` then `r` | Reload tmux configuration. |
+| `Prefix` then `d` | Detach while keeping the session running. |
+| `Ctrl+backtick` | Open or close the floating terminal without a prefix. |
+
+Reattach to the example session:
+
+```sh
+tmux attach-session -t dev
+```
+
+For `Ctrl+backtick` in Windows Terminal, use the [shortcut mapping below](#windows-terminal).
+
+### Windows setup
+
+Install the prerequisites inside WSL, then open CMD or PowerShell in your checkout:
+
+```bat
+setup.bat
+```
+
+In PowerShell, use `./setup.bat`. The script calls `setup.sh` through your default WSL distribution and installs into the WSL user's Linux home directory. Open Zsh inside WSL afterward to load the configuration.
+
+To install into another home directory, pass its Linux path:
+
+```sh
+./setup.sh /path/to/home
+```
+
+From Windows:
+
+```bat
+setup.bat /path/to/home
+```
+
+## Configuration
+
+### Files
+
+| File | Purpose |
+| --- | --- |
+| [`.zshrc`](.zshrc) | Prompt, plugins, completions, file colors, and aliases. |
+| [`.tmux.conf.local`](.tmux.conf.local) | Theme, status cards, window naming, and custom bindings. |
+| [`.tmux.conf`](.tmux.conf) | The bundled Oh my tmux! base configuration. |
+| `~/.workrc/rc.local` | Personal exports and aliases, loaded at the end of `.zshrc`. |
+
+Keep tmux customizations in `.tmux.conf.local`. Colors use the existing `tmux_conf_theme_colour_*` settings; the main accent is `#ff9b72`.
+
+Automatic window names follow the active pane's directory, so `~/.config/term_conf` appears as `term_conf` and your home directory as `~`. Manually renamed windows retain their names.
+
+For personal shell settings, edit `~/.workrc/rc.local`, for example:
+
+```sh
+# Personal settings loaded by ~/.zshrc.
+export EDITOR=vim
+alias ll='ls -lah'
+```
+
+Reload shell settings from Zsh, or reload tmux in a running session:
+
+```sh
+source ~/.zshrc
+tmux source-file ~/.tmux.conf
+```
+
+### Custom completions
+
+`ZSH_COMPLETION_DIR` is exported and added to `fpath` before completion initialization. It defaults to `~/.oh-my-zsh/custom/plugins/zsh-completions/src` and respects `ZSH_CUSTOM` when set.
+
+Write generated Zsh completions into an `_command` file there. For example, if you use [GitHub CLI](https://cli.github.com/manual/gh_completion):
+
+```sh
+gh completion --shell zsh > "$ZSH_COMPLETION_DIR/_gh"
+```
+
+Start a new Zsh session to load the completion.
+
+### Optional autosuggestions
+
+Install [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions):
+
+```sh
+git clone https://github.com/zsh-users/zsh-autosuggestions.git \
+    "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+```
+
+Then update the plugin list in `.zshrc`, keeping syntax highlighting last:
+
+```zsh
+plugins=(git extract zsh-autosuggestions zsh-syntax-highlighting)
+```
+
+### Platform details
+
+| Platform | Network information | World clocks |
+| --- | --- | --- |
+| Linux / WSL | `ip` from iproute2 and `/proc/net/dev`. WSL rates cover its Linux interface. | Perl and `/usr/share/zoneinfo` from tzdata. |
+| macOS | Built-in `route`, `netstat`, and `ifconfig`. | Perl and `/usr/share/zoneinfo`. |
+| Windows with tmux under Cygwin/MSYS | `powershell.exe` with NetTCPIP and NetAdapter modules. | PowerShell and Windows time zone rules. |
+
+The Windows helper branches are separate from installation: `setup.bat` always targets WSL. In WSL, network rates do not represent traffic from all Windows applications.
+
+Status cards use the terminal's default background and follow its transparency settings. They do not have a separate opacity setting, and the pane's text is not visible through a card. Calendar and network cards use Perl; no additional tmux plugin or `cal` command is required. Older tmux versions keep the status labels as plain text.
+
+### Windows Terminal
+
+<details>
+<summary>Fonts and Chinese fallback</summary>
+
+Select a Nerd Font as the primary font. For Chinese fallback, install either [Noto Sans Mono CJK SC](https://github.com/notofonts/noto-cjk/) or [Sarasa Mono SC](https://github.com/be5invis/Sarasa-Gothic/).
+
+Merge this font configuration into Windows Terminal's `settings.json`:
 
 ```json
 {
@@ -39,70 +234,14 @@ For example, to use `Sarasa Mono SC`:
 }
 ```
 
-The second font in `face` is the fallback font used for Chinese characters. To
-use Noto instead, set `face` to
-`"JetBrainsMono Nerd Font Mono, Noto Sans Mono CJK SC"`.
+The second font is the fallback for Chinese characters. To use Noto instead, set `face` to `"JetBrainsMono Nerd Font Mono, Noto Sans Mono CJK SC"`.
 
-# Startup
+</details>
 
-Install the dependencies above, then run the setup script from your checkout.
-Linux, macOS, and WSL:
+<details>
+<summary>Ctrl+backtick for the floating terminal</summary>
 
-```bash
-./setup.sh
-source ~/.zshrc
-```
-
-From Windows CMD or PowerShell, run `setup.bat` (or `./setup.bat` in PowerShell).
-It uses your default WSL distribution and installs the configuration in the WSL
-user's Linux home directory.
-
-Setup links `.zshrc`, `.tmux.conf`, and `.tmux.conf.local`, creates
-`ZSH_COMPLETION_DIR`, and initializes `~/.workrc/rc.local` with commented examples.
-Existing configuration files or different links are backed up beside the original
-paths before linking. Correct links and existing `rc.local` content are kept on
-repeat runs. Real directories at configuration-file paths are not replaced.
-
-For another target home directory, use `./setup.sh /path/to/home` or
-`setup.bat /path/to/home`. The completion path respects `ZSH_CUSTOM`.
-Setup does not execute shell startup files or install the dependencies.
-
-# Advanced
-We can create a `~/.workrc/rc.local` to export the environment variables for work.
-
-## Zsh completion directory
-
-`ZSH_COMPLETION_DIR` exports the resolved zsh-completions directory, which is
-added to `fpath` before completion initialization. It uses `ZSH_CUSTOM` when set,
-otherwise `$ZSH/custom`, with `~/.oh-my-zsh` as the fallback for `ZSH`.
-
-Redirect your command's Zsh completion output into an `_command` file there.
-For a command that supports `completion zsh`, for example:
-
-```sh
-mkdir -p "$ZSH_COMPLETION_DIR"
-your-command completion zsh > "$ZSH_COMPLETION_DIR/_your-command"
-```
-
-Use the completion-generation syntax supported by your command, then start a
-new Zsh session to load the new completion file.
-
-## tmux window names
-
-Automatic window labels use the basename of the active pane's current directory
-and update when the directory or active pane changes. For example,
-`~/.config/term_conf` appears as `term_conf`; the home directory appears as `~`.
-Manually renamed windows keep their custom names. Naming uses tmux's built-in
-format without launching a shell.
-
-## tmux floating terminal in Windows Terminal / WSL
-
-`Ctrl+backtick` opens and closes the floating terminal. tmux 3.2+ enables
-extended-key forwarding so the nested client can receive the closing shortcut.
-
-In Windows Terminal, explicitly map the shortcut to its extended key sequence.
-Merge these entries into the existing `actions` and `keybindings` arrays in
-`settings.json`:
+Map `Ctrl+backtick` to its extended key sequence in Windows Terminal. Merge these entries into the existing `actions` and `keybindings` arrays in `settings.json`:
 
 ```json
 {
@@ -124,79 +263,24 @@ Merge these entries into the existing `actions` and `keybindings` arrays in
 }
 ```
 
-Windows Terminal's [sendInput action](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/actions#send-input)
-sends the escape sequence to WSL. Keep existing actions and keybindings when
-adding this mapping. Reload tmux with `tmux source-file ~/.tmux.conf`.
+Windows Terminal's [sendInput action](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/actions#send-input) sends this sequence to WSL. tmux 3.2+ enables extended-key forwarding so the nested floating terminal receives the closing shortcut.
 
-## tmux network speed
+</details>
 
-The status bar shows download (`↓`) and upload (`↑`) rates for the default
-network interface. Units scale from B/s to KiB/s, MiB/s, and GiB/s. The bar
-refreshes every two seconds; slower system queries can delay network samples.
-Network speed is hidden below 80 columns, and the date below 120 columns.
+## Contributing
 
-With tmux 3.4+ and mouse support enabled, click either rate to open network
-details. The popup samples the default interface when opened and shows its
-name, first available IPv4 and non-link-local IPv6 address, download/upload
-rates, and total received/sent bytes. It reuses the status bar's recent sampling
-baseline and reads fresh counters, so opening it does not wait for another
-one-second sampling interval. Rates remain unavailable until a valid status
-sample is ready after an interface change or counter reset. Totals come from
-the system interface counters and may reset when the interface or system
-restarts. Click outside the card or its heading, or press `Esc` or `q`, to
-close it. Its background follows the terminal, like the calendar popup.
+Report issues through [GitHub Issues](https://github.com/ZhiWei-Ou/termConf/issues), including your OS, terminal, tmux version, and steps to reproduce. Add a screenshot or recording for visual problems.
 
-- Linux and WSL use `ip` from iproute2 and `/proc/net/dev`. In WSL, the rates
-  cover the WSL network interface rather than all Windows applications.
-- macOS uses the built-in `route`, `netstat`, and `ifconfig` commands.
-- Windows with tmux under Cygwin/MSYS uses `powershell.exe` and the built-in
-  NetTCPIP/NetAdapter modules. PowerShell must be available on `PATH`.
+For configuration changes, use `.tmux.conf.local` for tmux overrides and check syntax and whitespace:
 
-Sampling uses Perl, which is already required by Oh my tmux!. No tmux plugin
-is needed. Interface changes, counter resets, and unavailable statistics clear
-the network readout until a valid sample is available.
-
-## tmux calendar
-
-With tmux 3.4 or newer and mouse support enabled, click the status bar date to
-open a calendar above it. Weeks start on Monday, and today has a warm orange
-background with bold dark text. Click outside the card or its heading, or press
-`Esc` or `q`, to close it. The date appears at
-120 columns or wider. The popup uses the terminal default background, so it
-follows the terminal emulator's transparency settings. tmux does not provide
-independent popup opacity or show the pane's text through the popup.
-The calendar uses the existing Perl dependency; no `cal` command or plugin is
-required. Older tmux versions keep the date as plain text.
-
-## tmux time zones
-
-Click the clock label to view the local time, UTC, Beijing, Tokyo, London,
-New York, and Los Angeles. The popup shows dates and UTC offsets, including
-daylight saving time, from the latest background refresh. Click outside the
-card or its heading, or press `Esc` or `q`, to close it.
-Dates use `MM-DD` in terminals narrower than 44 columns.
-It uses the same terminal background as the calendar and requires tmux 3.4+.
-Linux/WSL and macOS use Perl and `/usr/share/zoneinfo` (install `tzdata` if
-missing). Windows under Cygwin/MSYS uses the existing `powershell.exe`
-dependency and Windows time zone rules for the city clocks.
-
-Calendar and time zone menus are prepared in the background for each session
-and refreshed when the minute changes. Cached clicks use tmux commands without
-starting a shell or writing a temporary file. Minute and day changes appear
-after the next status refresh. During initial preparation, clicks can still
-generate a menu directly. Repeated status clicks also respond immediately,
-including tmux's second-click and triple-click events.
-
-# FAQ
-- This repo has the `zsh-syntax-highlighting` feature enabled by default.
-> We can install it by:
-```bash
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```sh
+zsh -n .zshrc
+sh -n setup.sh
+git diff --check
 ```
 
-- If you want to enable `zsh-autosuggestions` feature.
-> we can install it by:
-```bash
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions`
-```
-> and then add `zsh-autosuggestions` to the plugin list in `~/.zshrc`.
+Manually verify affected shortcuts, status cards, or shell behavior on the platform you changed. Keep personal settings in `~/.workrc/rc.local`.
+
+## License
+
+[MIT](LICENSE). The bundled [Oh my tmux!](https://github.com/gpakosz/.tmux) configuration retains its upstream MIT/WTFPL notices.
