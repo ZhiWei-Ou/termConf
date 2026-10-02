@@ -124,7 +124,8 @@ The prefix is **`Ctrl+b`**: press it, release it, then press the next key.
 | `Prefix` then `h` / `j` / `k` / `l` | Move between panes. |
 | `Prefix` then `m` | Toggle mouse support. |
 | `Prefix` then `r` | Reload tmux configuration. |
-| `Prefix` then `S` (`Shift+s`) | Open the night sky screensaver; any key closes it. |
+| `Prefix` then `t` | Show the built-in clock; any key closes it. |
+| `Prefix` then `T` (`Shift+t`) | Open the night sky screensaver; any key closes it. |
 | `Prefix` then `d` | Detach while keeping the session running. |
 | `Ctrl+backtick` | Open or close the floating terminal without a prefix. |
 

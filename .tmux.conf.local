@@ -502,9 +502,12 @@ bind-key -n 'C-`' if-shell -F '#{==:#{session_name},popup}' \
   'detach-client' \
   'display-popup -E -b rounded -S "fg=#ff9b72,bg=default" -w 80% -h 80% -d "#{pane_current_path}" "tmux -T extkeys -f ~/.tmux.conf new-session -A -s popup"'
 
+# Keep the built-in clock on lowercase t.
+bind-key t clock-mode
+
 # A quiet night sky. Any key closes the overlay without reaching the active pane.
 %if #{>=:#{version},3.2}
-bind-key S display-popup -E -B -w 100% -h 100% \
+bind-key T display-popup -E -B -w 100% -h 100% \
   "cut -c3- \"\$TMUX_CONF_LOCAL\" | sh -s _screensaver"
 %endif
 
@@ -670,9 +673,6 @@ tmux_conf_uninstall_plugins_on_reload=true
 #         put(\%frame, $x + 9 + $dream, $y - 1 - $dream, $dream == 2 ? "Z" : "z", 4)
 #           if $dream < 3;
 #       }
-#       my $hint = $cols >= 24 ? "press any key to return" : "any key to return";
-#       put(\%frame, int(($cols - length $hint) / 2), $rows - 2, $hint, 0) if $rows >= 3;
-#
 #       # Only redraw changed cells, keeping idle CPU use and terminal traffic low.
 #       my $output = "";
 #       for my $cell (sort { $a <=> $b } keys %frame, grep { !exists $frame{$_} } keys %previous) {
