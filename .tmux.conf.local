@@ -281,6 +281,7 @@ tmux_conf_theme_status_left=""
 # User ranges let the status labels handle clicks without changing the window list.
 tmux_conf_theme_status_network="#{network_speed}  "
 tmux_conf_theme_status_date="%m-%d"
+tmux_conf_theme_status_battery="#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}"
 tmux_conf_theme_status_time=" #[fg=$tmux_conf_theme_colour_2,bg=default]#[fg=$tmux_conf_theme_colour_4,bg=$tmux_conf_theme_colour_2,bold] %R #[fg=$tmux_conf_theme_colour_2,bg=default,nobold]"
 tmux_conf_theme_status_clock_menus=""
 %if #{>=:#{version},3.4}
@@ -288,11 +289,12 @@ tmux_conf_theme_status_clock_menus="#{clock_menus #{q:session_id}}"
 # Use spaces between styles inside the width conditional. Mouse ranges overlap
 # one cell, so isolate the leading gap and switch ranges before the final cap.
 tmux_conf_theme_status_network="#{?#{network_speed},#[norange] #[range=user|network]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] #{network_speed} #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]#[fg=$tmux_conf_theme_colour_3 bg=default],}"
+tmux_conf_theme_status_battery="#{?battery_percentage,#[norange] #[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_3 bg=$tmux_conf_theme_colour_2] #{battery_bar} #{battery_percentage} #[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_3 bg=default],}"
 tmux_conf_theme_status_date="#[norange] #[range=user|calendar]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] %m-%d #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]#[fg=$tmux_conf_theme_colour_3 bg=default]"
 tmux_conf_theme_status_time="#[norange] #[range=user|timezones]#[fg=$tmux_conf_theme_colour_2 bg=default]#[fg=$tmux_conf_theme_colour_4 bg=$tmux_conf_theme_colour_2 bold] %R #[fg=$tmux_conf_theme_colour_2 bg=default nobold range=right]"
 %endif
 # Keep the clock visible; hide network speed and the date on narrow terminals.
-tmux_conf_theme_status_right="$tmux_conf_theme_status_clock_menus #{prefix}#{pairing}#{synchronized}#{root}#{?battery_percentage,#{battery_status}#{battery_percentage}  ,}#{?#{e|>=:#{client_width},80},$tmux_conf_theme_status_network,}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
+tmux_conf_theme_status_right="$tmux_conf_theme_status_clock_menus #{prefix}#{pairing}#{synchronized}#{root}$tmux_conf_theme_status_battery#{?#{e|>=:#{client_width},80},$tmux_conf_theme_status_network,}#{?#{e|>=:#{client_width},120},$tmux_conf_theme_status_date,}$tmux_conf_theme_status_time "
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6"
@@ -335,22 +337,22 @@ tmux_conf_theme_synchronized_bg="none"
 tmux_conf_theme_synchronized_attr="bold"
 
 # battery bar symbols
-tmux_conf_battery_bar_symbol_full="◼"
-tmux_conf_battery_bar_symbol_empty="◻"
+tmux_conf_battery_bar_symbol_full="▰"
+tmux_conf_battery_bar_symbol_empty="▱"
 # tmux_conf_battery_bar_symbol_full="♥ "
 # tmux_conf_battery_bar_symbol_empty="·"
 
 # battery bar length (in number of symbols), possible values are:
 #   - auto
 #   - a number, e.g. 5
-tmux_conf_battery_bar_length="auto"
+tmux_conf_battery_bar_length="5"
 
 # battery bar palette, possible values are:
 #   - gradient (default)
 #   - heat
 #   - "colour_full_fg,colour_empty_fg,colour_bg"
 #   - gradient(colour_fg_1,colour_fg_2,...,colour_fg_n)
-tmux_conf_battery_bar_palette="gradient"
+tmux_conf_battery_bar_palette="$tmux_conf_theme_colour_4,#666666,$tmux_conf_theme_colour_2"
 #tmux_conf_battery_bar_palette="#d70000,#e4e4e4,#000000"   # red, white, black
 #tmux_conf_battery_bar_palette="gradient(#00afff,#47a2ff,#7c91ff,#ac7afb,#d65be2,#e163df,#eb6cdd,#f475db,#ec9ff1,#eac3fe,#efe2ff,#ffffff)"
 
